@@ -1,0 +1,22 @@
+experiment_name: "baseline_v1"
+random_seed: 42
+
+dataset:
+  version: "v1"
+  primary_market: "king_county_wa"
+  secondary_market: "cook_county_il"
+  date_range: ["2016-01-01", "2024-12-31"]
+
+feature_set: "property_only"
+
+split:
+  type: "random"
+  test_size: 0.2
+
+model:
+  type: "linear_regression"
+  hyperparameters: {}
+
+evaluation:
+  metrics: ["rmse", "mae", "mape", "r2"]
+  compute_prediction_intervals: false
