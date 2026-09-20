@@ -1,33 +1,16 @@
-"""
-Merges the cleaned Bangalore sales data with the per-location amenity
-distances, producing one final feature-complete table.
-"""
-
-from pathlib import Path
-
 import pandas as pd
 
-SALES_PATH = Path("data/processed/bangalore_sales_clean.csv")
-AMENITIES_PATH = Path("data/processed/bangalore_amenity_distances.csv")
-OUTPUT_PATH = Path("data/processed/bangalore_final_dataset.csv")
+sales = pd.read_csv("data/processed/bangalore_sales_clean.csv")
+amenities = pd.read_csv("data/processed/bangalore_amenity_distances.csv")
 
+amenities = amenities[["location", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]]
 
-if __name__ == "__main__":
-    sales = pd.read_csv(SALES_PATH)
-    amenities = pd.read_csv(AMENITIES_PATH)[
-        ["location", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]
-    ]
+final = sales.merge(amenities, on="location", how="left")
 
-    print(f"Sales rows: {len(sales)}")
-    print(f"Amenity records: {len(amenities)}")
+print("Final rows:", len(final))
+print("Missing school distance:", final["dist_to_school_km"].isna().sum())
+print("Missing hospital distance:", final["dist_to_hospital_km"].isna().sum())
+print("Missing transit distance:", final["dist_to_transit_km"].isna().sum())
 
-    final = sales.merge(amenities, on="location", how="left")
-
-    for col in ["dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]:
-        missing = final[col].isna().sum()
-        print(f"{col}: missing for {missing}/{len(final)} rows ({missing/len(final):.1%})")
-
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    final.to_csv(OUTPUT_PATH, index=False)
-    print(f"\nSaved final dataset: {len(final)} rows, {len(final.columns)} columns to {OUTPUT_PATH}")
-    print(f"Columns: {list(final.columns)}")
+final.to_csv("data/processed/bangalore_final_dataset.csv", index=False)
+print("Saved final dataset!")

@@ -1,26 +1,15 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from src.api.schemas import PredictionRequest, PredictionResponse
 
-app = FastAPI(title="Real-Estate-AVM")
-
-
-class PredictionRequest(BaseModel):
-    square_footage: float
-    bedrooms: int
-    bathrooms: float
-    latitude: float
-    longitude: float
-
-
-class PredictionResponse(BaseModel):
-    predicted_price: float
+app = FastAPI()
 
 
 @app.get("/health")
-def health() -> dict:
+def health_check():
     return {"status": "ok"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(request: PredictionRequest) -> PredictionResponse:
-    raise NotImplementedError("Model not trained yet")
+def predict(request: PredictionRequest):
+    # no real model trained yet, just sending back a placeholder for now
+    return PredictionResponse(predicted_price=0.0, model_version="not trained yet")
