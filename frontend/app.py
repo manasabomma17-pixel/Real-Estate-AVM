@@ -80,13 +80,30 @@ with tab1:
     st.write("Distance to nearest hospital:", format_distance(dist_hospital))
     st.write("Distance to nearest transit:", format_distance(dist_transit))
 
+    # build a description using only real numbers from the dataset
+    area_properties = data[data["location"] == selected_location]
+    area_avg_per_sqft = (area_properties["price"] / area_properties["total_sqft_clean"]).mean()
+
+    sqft_per_bedroom = round(size_sqft / bedrooms)
+
     description = (
         "This is a " + str(bedrooms) + " BHK, " + str(bathrooms) + " bathroom property "
-        + "covering " + str(size_sqft) + " sqft, located in " + selected_location + ". "
-        + "It is about " + format_distance(dist_school) + " from the nearest school, "
-        + format_distance(dist_hospital) + " from the nearest hospital, and "
-        + format_distance(dist_transit) + " from the nearest transit stop."
+        + "covering " + str(size_sqft) + " sqft in " + selected_location + ", "
+        + "which works out to about " + str(sqft_per_bedroom) + " sqft per bedroom. "
     )
+
+    description += (
+        "The nearest school is " + format_distance(dist_school) + " away, "
+        + "the nearest hospital " + format_distance(dist_hospital) + ", and "
+        + "the nearest transit stop " + format_distance(dist_transit) + ". "
+    )
+
+    if len(area_properties) > 0:
+        description += (
+            "There are " + str(len(area_properties)) + " listings in this area in our dataset, "
+            + "with an average of " + str(round(area_avg_per_sqft * 100000)) + " rupees per sqft."
+        )
+
     st.write(description)
 
     if st.button("Predict Price"):
@@ -115,7 +132,13 @@ with tab1:
         col1, col2 = st.columns(2)
 
         with col1:
-            st.metric("Predicted Price", str(st.session_state.predicted_price) + " Lakhs")
+            # our model's average error on test data is about 24 Lakhs, so we
+            # show a range around the estimate instead of a single exact number
+            error_margin = 24
+            low = max(1, round(st.session_state.predicted_price - error_margin))
+            high = round(st.session_state.predicted_price + error_margin)
+            st.metric("Estimated Price Range", str(low) + " - " + str(high) + " Lakhs")
+            st.caption("Best estimate: " + str(st.session_state.predicted_price) + " Lakhs")
 
         with col2:
             if len(same_type_properties) > 0:
@@ -152,6 +175,16 @@ with tab2:
 
     st.write("Found", len(filtered), "matching properties")
 
+    # every property in a location shares the same coordinates, so they would
+    # all stack into one dot. spread them in a small circle around the real
+    # point so each one can be seen and hovered separately
+    filtered = filtered.copy()
+    if len(filtered) > 0:
+        spread = 0.004
+        angles = [2 * math.pi * i / len(filtered) for i in range(len(filtered))]
+        filtered["lat"] = [lat + spread * math.cos(a) for lat, a in zip(filtered["lat"], angles)]
+        filtered["lon"] = [lon + spread * math.sin(a) for lon, a in zip(filtered["lon"], angles)]
+
     your_price = st.session_state.predicted_price if st.session_state.predicted_price is not None else 0
 
     your_property = pd.DataFrame([{
@@ -184,7 +217,7 @@ with tab2:
             pickable=True,
         ))
 
-    st.write("Blue = your property, red = similar listings. Hover over a dot for details.")
+    st.write("Blue = your property, red = similar listings (spread out slightly so each is visible). Hover over a dot for details.")
 
     st.pydeck_chart(pdk.Deck(
         layers=layers,
@@ -195,11 +228,40 @@ with tab2:
         },
     ))
 
+    # asking the API for an estimate per listing means one request each,
+    # so it is off by default and only runs when the user wants it
+    show_estimates = st.checkbox("Show our estimate for each listing")
+
     for index, row in filtered.head(20).iterrows():
         st.markdown("---")
-        st.write(str(row["bhk"]) + " BHK in " + row["location"])
-        st.write("Price:", row["price"], "Lakhs")
-        st.write("Size:", row["total_sqft_clean"], "sqft")
+        st.write("**" + str(int(row["bhk"])) + " BHK in " + row["location"] + "**")
+
+        per_sqft = round(row["price"] * 100000 / row["total_sqft_clean"])
+
+        st.write(
+            "Listed at " + str(row["price"]) + " Lakhs  |  "
+            + str(int(row["total_sqft_clean"])) + " sqft  |  "
+            + str(per_sqft) + " rupees per sqft"
+        )
+
+        if show_estimates:
+            listing_request = {
+                "location": row["location"],
+                "size_sqft": float(row["total_sqft_clean"]),
+                "bedrooms": int(row["bhk"]),
+                "bathrooms": float(row["bath"]) if not pd.isna(row["bath"]) else 2.0,
+                "asking_price": float(row["price"])
+            }
+            try:
+                listing_response = requests.post("http://127.0.0.1:8000/predict", json=listing_request)
+                listing_result = listing_response.json()
+                st.caption(
+                    "Our estimate for this property: "
+                    + str(listing_result["predicted_price"]) + " Lakhs - "
+                    + str(listing_result.get("verdict", ""))
+                )
+            except:
+                st.caption("Could not get an estimate for this listing")
 
 
 with tab3:
