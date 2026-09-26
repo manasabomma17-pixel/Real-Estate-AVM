@@ -169,7 +169,7 @@ with tab2:
         "ScatterplotLayer",
         data=your_property,
         get_position="[lon, lat]",
-        get_radius=200,
+        get_radius=60,
         get_fill_color=[60, 140, 255],
         pickable=True,
     )]
@@ -179,7 +179,7 @@ with tab2:
             "ScatterplotLayer",
             data=filtered,
             get_position="[lon, lat]",
-            get_radius=60,
+            get_radius=25,
             get_fill_color=[255, 60, 60],
             pickable=True,
         ))
@@ -188,7 +188,7 @@ with tab2:
 
     st.pydeck_chart(pdk.Deck(
         layers=layers,
-        initial_view_state=pdk.ViewState(latitude=selected_lat, longitude=selected_lon, zoom=13),
+        initial_view_state=pdk.ViewState(latitude=selected_lat, longitude=selected_lon, zoom=12),
         tooltip={
             "html": "<b>{location}</b><br/>{bhk} BHK<br/>Price: {price} Lakhs<br/>Size: {total_sqft_clean} sqft",
             "style": {"color": "white"}
