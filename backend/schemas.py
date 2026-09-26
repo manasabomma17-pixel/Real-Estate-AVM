@@ -1,23 +1,16 @@
 from pydantic import BaseModel
 
 
-class PropertyFeatures(BaseModel):
+class PredictionRequest(BaseModel):
+    location: str
     size_sqft: float
     bedrooms: int
     bathrooms: float
-
-
-class LocationFeatures(BaseModel):
-    distance_to_school_km: float
-    distance_to_hospital_km: float
-    distance_to_transit_km: float
-
-
-class PredictionRequest(BaseModel):
-    property: PropertyFeatures
-    location: LocationFeatures
+    asking_price: float | None = None
 
 
 class PredictionResponse(BaseModel):
     predicted_price: float
     model_version: str
+    verdict: str | None = None
+    difference_percent: float | None = None
