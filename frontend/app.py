@@ -163,7 +163,16 @@ with tab2:
         "total_sqft_clean": size_sqft
     }])
 
-    layers = []
+    # your property is drawn first and bigger, so the red listings
+    # sit on top of it and stay visible even at the same coordinates
+    layers = [pdk.Layer(
+        "ScatterplotLayer",
+        data=your_property,
+        get_position="[lon, lat]",
+        get_radius=200,
+        get_fill_color=[60, 140, 255],
+        pickable=True,
+    )]
 
     if len(filtered) > 0:
         layers.append(pdk.Layer(
@@ -174,15 +183,6 @@ with tab2:
             get_fill_color=[255, 60, 60],
             pickable=True,
         ))
-
-    layers.append(pdk.Layer(
-        "ScatterplotLayer",
-        data=your_property,
-        get_position="[lon, lat]",
-        get_radius=150,
-        get_fill_color=[60, 140, 255],
-        pickable=True,
-    ))
 
     st.write("Blue = your property, red = similar listings. Hover over a dot for details.")
 
