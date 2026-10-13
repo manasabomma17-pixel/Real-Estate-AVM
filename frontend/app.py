@@ -106,6 +106,23 @@ with tab1:
 
     st.write(description)
 
+    # what the listings in this area actually look like
+    if len(area_properties) > 0:
+        ready_count = (area_properties["availability"].astype(str).str.strip() == "Ready To Move").sum()
+        ready_percent = round(ready_count / len(area_properties) * 100)
+
+        common_type = area_properties["area_type"].mode()
+        common_type_text = str(common_type.iloc[0]).strip() if len(common_type) > 0 else "unknown"
+
+        cheapest = round(area_properties["price"].min(), 1)
+        dearest = round(area_properties["price"].max(), 1)
+
+        st.caption(
+            "In " + selected_location + ": " + str(ready_percent) + "% of listings are ready to move, "
+            + "most are " + common_type_text + ", and prices range from "
+            + str(cheapest) + " to " + str(dearest) + " Lakhs."
+        )
+
     if st.button("Predict Price"):
         request_data = {
             "location": selected_location,
@@ -247,6 +264,23 @@ with tab2:
             + str(int(row["total_sqft_clean"])) + " sqft  |  "
             + str(per_sqft) + " rupees per sqft"
         )
+
+        # extra details that are in the dataset but were not being shown
+        details = []
+        if not pd.isna(row.get("area_type")):
+            details.append(str(row["area_type"]).strip())
+        if not pd.isna(row.get("bath")):
+            details.append(str(int(row["bath"])) + " bathrooms")
+        if not pd.isna(row.get("balcony")):
+            details.append(str(int(row["balcony"])) + " balconies")
+        if not pd.isna(row.get("availability")):
+            avail = str(row["availability"]).strip()
+            details.append(avail if avail == "Ready To Move" else "Possession " + avail)
+        if not pd.isna(row.get("society")) and str(row["society"]).strip() != "":
+            details.append("Society: " + str(row["society"]).strip())
+
+        if details:
+            st.write("  |  ".join(details))
 
         if show_estimates:
             listing_request = {
