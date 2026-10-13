@@ -132,13 +132,17 @@ with tab1:
         col1, col2 = st.columns(2)
 
         with col1:
-            # our model's average error on test data is about 24 Lakhs, so we
-            # show a range around the estimate instead of a single exact number
-            error_margin = 24
-            low = max(1, round(st.session_state.predicted_price - error_margin))
-            high = round(st.session_state.predicted_price + error_margin)
+            # our model's average error on test data is 23.7%, so the range
+            # scales with the price instead of being a flat amount
+            error_percent = 23.7
+            margin = st.session_state.predicted_price * error_percent / 100
+            low = max(1, round(st.session_state.predicted_price - margin))
+            high = round(st.session_state.predicted_price + margin)
             st.metric("Estimated Price Range", str(low) + " - " + str(high) + " Lakhs")
-            st.caption("Best estimate: " + str(st.session_state.predicted_price) + " Lakhs")
+            st.caption(
+                "Best estimate: " + str(st.session_state.predicted_price)
+                + " Lakhs (our model is off by about 24% on average)"
+            )
 
         with col2:
             if len(same_type_properties) > 0:
@@ -277,9 +281,41 @@ with tab3:
 
     nearby_df = pd.DataFrame(nearby_list).sort_values("distance_number").head(10)
     nearby_df["Distance"] = nearby_df["distance_number"].apply(lambda x: str(round(x, 1)) + " km")
-    nearby_df = nearby_df[["Neighborhood", "Distance"]]
+
+    # price per sqft in each area, so the user can see where they get more space
+    area_rates = (data["price"] / data["total_sqft_clean"]).groupby(data["location"]).median() * 100000
+    selected_rate = area_rates.get(selected_location)
+
+    def rate_text(area):
+        rate = area_rates.get(area)
+        if pd.isna(rate):
+            return "no data"
+        return str(int(round(rate))) + " /sqft"
+
+    def compare_text(area):
+        rate = area_rates.get(area)
+        if pd.isna(rate) or selected_rate is None or pd.isna(selected_rate):
+            return "-"
+        diff = (rate - selected_rate) / selected_rate * 100
+        if diff > 5:
+            return str(int(round(diff))) + "% pricier"
+        if diff < -5:
+            return str(int(round(abs(diff)))) + "% cheaper"
+        return "about the same"
+
+    nearby_df["Price per sqft"] = nearby_df["Neighborhood"].apply(rate_text)
+    nearby_df["Compared to " + selected_location] = nearby_df["Neighborhood"].apply(compare_text)
+
+    nearby_df = nearby_df[["Neighborhood", "Distance", "Price per sqft", "Compared to " + selected_location]]
+
+    if selected_rate is not None and not pd.isna(selected_rate):
+        st.write(
+            selected_location + " averages about "
+            + str(int(round(selected_rate))) + " rupees per sqft."
+        )
 
     st.table(nearby_df)
+    st.caption("Median price per sqft from listings in our dataset.")
 
 
 with tab4:
