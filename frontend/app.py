@@ -283,6 +283,42 @@ with tab3:
 
 
 with tab4:
+    st.header("What Drives the Price?")
+    st.write(
+        "We used SHAP to measure how much each factor affects the predicted price "
+        "across all 11,272 properties in our dataset."
+    )
+
+    try:
+        importance = pd.read_csv("reports/shap_feature_importance.csv")
+
+        readable_names = {
+            "total_sqft_clean": "Size (sqft)",
+            "location_price": "Area price level",
+            "bath": "Bathrooms",
+            "bhk": "Bedrooms",
+            "lat": "Latitude",
+            "lon": "Longitude",
+            "dist_to_hospital_km": "Distance to hospital",
+            "dist_to_school_km": "Distance to school",
+            "dist_to_transit_km": "Distance to transit",
+        }
+        importance["Factor"] = importance["feature"].map(readable_names).fillna(importance["feature"])
+        importance["Average effect"] = importance["average_effect_lakhs"].apply(
+            lambda x: str(round(x, 2)) + " Lakhs"
+        )
+
+        st.table(importance[["Factor", "Average effect"]])
+
+        st.write(
+            "Property features (size, bedrooms, bathrooms) account for about 70% of the "
+            "price effect. Location features account for about 30%. Within location, which "
+            "area a property is in matters much more than how close it is to any single amenity."
+        )
+    except:
+        st.write("Run the SHAP analysis script to see feature importance here.")
+
+    st.markdown("---")
     st.header("How It Works")
     st.write(
         "This tool uses a machine learning model (XGBoost) trained on thousands of real "
