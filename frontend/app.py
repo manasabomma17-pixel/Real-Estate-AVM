@@ -4,6 +4,38 @@ import pydeck as pdk
 import requests
 import math
 
+# a bit of custom styling - streamlit's config file only does flat colours,
+# so the gradient and the card shadows have to be done with css
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(165deg, #37565201 0%, #2C4643 0%, #243A38 100%);
+}
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: #3A5B57;
+    border-radius: 14px;
+    border: 1px solid rgba(227, 181, 92, 0.28);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+[data-testid="stMetricValue"] {
+    color: #E3B55C;
+    font-weight: 600;
+}
+[data-testid="stMetricLabel"] {
+    color: #C6D5D1;
+}
+h1, h2 {
+    color: #F3EFE4;
+}
+h3 {
+    color: #F3EFE4;
+    border-left: 4px solid #E3B55C;
+    padding-left: 12px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 st.title("Real Estate AVM - Price Predictor")
 
 st.write(
@@ -238,10 +270,15 @@ with tab2:
             pickable=True,
         ))
 
-    st.write("Blue = your property, red = similar listings (spread out slightly so each is visible). Hover over a dot for details.")
+    st.write("The blue marker is the area you selected. Zoom in for a closer look.")
+
+    # only keep the first layer (your property). the red listing dots were all
+    # at the same area point, so they drew as one big circle instead of separate dots
+    layers = layers[:1]
 
     st.pydeck_chart(pdk.Deck(
         layers=layers,
+        map_style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
         initial_view_state=pdk.ViewState(latitude=selected_lat, longitude=selected_lon, zoom=12),
         tooltip={
             "html": "<b>{location}</b><br/>{bhk} BHK<br/>Price: {price} Lakhs<br/>Size: {total_sqft_clean} sqft",
@@ -253,53 +290,84 @@ with tab2:
     # so it is off by default and only runs when the user wants it
     show_estimates = st.checkbox("Show our estimate for each listing")
 
+    # small helper so distances read as 1.6 km instead of 1.63492
+    def listing_distance(value):
+        if value is None or pd.isna(value):
+            return "not found"
+        return str(round(float(value), 1)) + " km"
+
     for index, row in filtered.head(20).iterrows():
-        st.markdown("---")
-        st.write("**" + str(int(row["bhk"])) + " BHK in " + row["location"] + "**")
 
         per_sqft = round(row["price"] * 100000 / row["total_sqft_clean"])
 
-        st.write(
-            "Listed at " + str(row["price"]) + " Lakhs  |  "
-            + str(int(row["total_sqft_clean"])) + " sqft  |  "
-            + str(per_sqft) + " rupees per sqft"
-        )
+        # each property gets its own bordered card so they do not run together
+        with st.container(border=True):
 
-        # extra details that are in the dataset but were not being shown
-        details = []
-        if not pd.isna(row.get("area_type")):
-            details.append(str(row["area_type"]).strip())
-        if not pd.isna(row.get("bath")):
-            details.append(str(int(row["bath"])) + " bathrooms")
-        if not pd.isna(row.get("balcony")):
-            details.append(str(int(row["balcony"])) + " balconies")
-        if not pd.isna(row.get("availability")):
-            avail = str(row["availability"]).strip()
-            details.append(avail if avail == "Ready To Move" else "Possession " + avail)
-        if not pd.isna(row.get("society")) and str(row["society"]).strip() != "":
-            details.append("Society: " + str(row["society"]).strip())
+            st.markdown("### " + str(int(row["bhk"])) + " BHK in " + row["location"])
 
-        if details:
-            st.write("  |  ".join(details))
+            # the three main numbers, side by side
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Listed price", str(row["price"]) + " Lakhs")
+            col2.metric("Size", str(int(row["total_sqft_clean"])) + " sqft")
+            col3.metric("Rate", str(per_sqft) + " /sqft")
 
-        if show_estimates:
-            listing_request = {
-                "location": row["location"],
-                "size_sqft": float(row["total_sqft_clean"]),
-                "bedrooms": int(row["bhk"]),
-                "bathrooms": float(row["bath"]) if not pd.isna(row["bath"]) else 2.0,
-                "asking_price": float(row["price"])
-            }
-            try:
-                listing_response = requests.post("http://127.0.0.1:8000/predict", json=listing_request)
-                listing_result = listing_response.json()
-                st.caption(
-                    "Our estimate for this property: "
-                    + str(listing_result["predicted_price"]) + " Lakhs - "
-                    + str(listing_result.get("verdict", ""))
-                )
-            except:
-                st.caption("Could not get an estimate for this listing")
+            # work out the detail text first, so the columns stay readable
+            if not pd.isna(row.get("bath")):
+                bath_text = str(int(row["bath"]))
+            else:
+                bath_text = "not given"
+
+            if not pd.isna(row.get("balcony")):
+                balcony_text = str(int(row["balcony"]))
+            else:
+                balcony_text = "not given"
+
+            if not pd.isna(row.get("area_type")):
+                area_text = str(row["area_type"]).strip().replace(" Area", "")
+            else:
+                area_text = "not given"
+
+            if not pd.isna(row.get("availability")):
+                avail = str(row["availability"]).strip()
+                if avail == "Ready To Move":
+                    avail_text = "Ready to move"
+                else:
+                    avail_text = "Possession " + avail
+            else:
+                avail_text = "not given"
+
+            col4, col5, col6, col7 = st.columns(4)
+            col4.markdown("**Bathrooms**  \n" + bath_text)
+            col5.markdown("**Balconies**  \n" + balcony_text)
+            col6.markdown("**Area type**  \n" + area_text)
+            col7.markdown("**Status**  \n" + avail_text)
+
+            st.markdown("**What is nearby**")
+            col8, col9, col10 = st.columns(3)
+            col8.markdown("School  \n" + listing_distance(row.get("dist_to_school_km")))
+            col9.markdown("Hospital  \n" + listing_distance(row.get("dist_to_hospital_km")))
+            col10.markdown("Transit  \n" + listing_distance(row.get("dist_to_transit_km")))
+
+            if not pd.isna(row.get("society")) and str(row["society"]).strip() != "":
+                st.caption("Society: " + str(row["society"]).strip())
+
+            if show_estimates:
+                listing_request = {
+                    "location": row["location"],
+                    "size_sqft": float(row["total_sqft_clean"]),
+                    "bedrooms": int(row["bhk"]),
+                    "bathrooms": float(row["bath"]) if not pd.isna(row["bath"]) else 2.0,
+                    "asking_price": float(row["price"])
+                }
+                try:
+                    listing_response = requests.post("http://127.0.0.1:8000/predict", json=listing_request)
+                    listing_result = listing_response.json()
+                    st.info(
+                        "Our estimate: " + str(listing_result["predicted_price"]) + " Lakhs  -  "
+                        + str(listing_result.get("verdict", ""))
+                    )
+                except:
+                    st.caption("Could not get an estimate for this listing")
 
 
 with tab3:
