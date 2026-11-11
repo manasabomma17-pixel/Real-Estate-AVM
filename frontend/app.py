@@ -1,15 +1,26 @@
-import streamlit as st
+import math
+import os
+from pathlib import Path
+
 import pandas as pd
 import pydeck as pdk
 import requests
-import math
+import streamlit as st
+
+st.set_page_config(page_title="Real Estate AVM - Bangalore", page_icon="🏠", layout="centered")
+
+# paths are worked out from this file, so the app runs from any folder
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# the backend address can be changed without editing code
+BACKEND_URL = os.getenv("FRONTEND_BACKEND_URL", "http://127.0.0.1:8000")
 
 # a bit of custom styling - streamlit's config file only does flat colours,
 # so the gradient and the card shadows have to be done with css
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(165deg, #37565201 0%, #2C4643 0%, #243A38 100%);
+    background: linear-gradient(165deg, #375652 0%, #2C4643 45%, #243A38 100%);
 }
 [data-testid="stVerticalBlockBorderWrapper"] {
     background: #3A5B57;
@@ -44,20 +55,39 @@ st.write(
     "then explore similar properties and nearby areas in the other tabs."
 )
 
-data = pd.read_csv("data/processed/bangalore_final_dataset.csv")
+# st.cache_data reads each file once, instead of on every click
+@st.cache_data
+def load_csv(relative_path):
+    return pd.read_csv(PROJECT_ROOT / relative_path)
 
-location_info = data.drop_duplicates(subset="location")[
-    ["location", "lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]
-]
-location_info = location_info.set_index("location")
+
+def load_report(relative_path):
+    """reports are optional: if a script has not been run yet, skip that section"""
+    try:
+        return load_csv(relative_path)
+    except FileNotFoundError:
+        return None
+
+
+data = load_csv("data/processed/bangalore_final_dataset.csv")
+
+# the lookup holds only the 881 areas the model was trained on. the full
+# dataset has 901, and the other 20 would get no price, so they are left out
+location_info = load_csv("data/processed/location_lookup.csv").set_index("location")
 
 location_list = sorted(location_info.index.tolist())
 
+model_error = load_report("reports/model_error.csv")
+error_percent = float(model_error["mape_percent"].iloc[0]) if model_error is not None else 23.7
+
 
 def format_distance(value):
-    if pd.isna(value):
+    if value is None or pd.isna(value):
         return "not found"
-    return str(round(value, 1)) + " km"
+    # under 1 km reads better in metres: "13 m" instead of "0.0 km"
+    if float(value) < 1:
+        return str(int(round(float(value) * 1000))) + " m"
+    return str(round(float(value), 1)) + " km"
 
 
 def distance_km(lat1, lon1, lat2, lon2):
@@ -76,14 +106,22 @@ if "predicted_price" not in st.session_state:
 if "verdict" not in st.session_state:
     st.session_state.verdict = None
 
+if "price_factors" not in st.session_state:
+    st.session_state.price_factors = []
+    st.session_state.base_price = None
+
+if "result" not in st.session_state:
+    st.session_state.result = None
+
 tab1, tab2, tab3, tab4 = st.tabs(["Predict Price", "Similar Properties", "Nearby Neighborhoods", "How It Works"])
 
 
 with tab1:
     st.header("Enter Property Details")
 
+    default_index = location_list.index("Whitefield") if "Whitefield" in location_list else 0
     selected_location = st.selectbox(
-        "Location", location_list,
+        "Location", location_list, index=default_index,
         help="Choose the neighborhood where the property is located"
     )
     size_sqft = st.number_input(
@@ -168,29 +206,43 @@ with tab1:
 
         try:
             with st.spinner("Calculating predicted price..."):
-                response = requests.post("http://127.0.0.1:8000/predict", json=request_data)
+                response = requests.post(BACKEND_URL + "/predict", json=request_data, timeout=15)
+
+            if response.status_code == 200:
                 result = response.json()
+                st.session_state.result = result
                 st.session_state.predicted_price = result["predicted_price"]
                 st.session_state.verdict = result.get("verdict")
-        except:
-            st.error("Could not connect to the backend. Make sure the FastAPI server is running.")
+                st.session_state.base_price = result.get("base_price")
+                st.session_state.price_factors = result.get("factors", [])
+            else:
+                # 404 = unknown area, 422 = input outside the allowed range
+                detail = response.json().get("detail", "")
+                if isinstance(detail, list) and len(detail) > 0:
+                    detail = detail[0].get("msg", "")
+                st.error("The backend could not price this property: " + str(detail))
+        except requests.exceptions.RequestException:
+            st.error("Could not connect to the backend. Make sure the FastAPI server is running "
+                     "(uvicorn backend.main:app --reload).")
 
     same_type_properties = data[(data["location"] == selected_location) & (data["bhk"] == bedrooms)]
 
     if st.session_state.predicted_price is not None:
         col1, col2 = st.columns(2)
 
+        result = st.session_state.result or {}
+
         with col1:
-            # our model's average error on test data is 23.7%, so the range
-            # scales with the price instead of being a flat amount
-            error_percent = 23.7
-            margin = st.session_state.predicted_price * error_percent / 100
-            low = max(1, round(st.session_state.predicted_price - margin))
-            high = round(st.session_state.predicted_price + margin)
+            # the range comes from the backend and uses the model's measured
+            # average error on unseen test data, so it scales with the price
+            low = round(result.get("price_low", st.session_state.predicted_price))
+            high = round(result.get("price_high", st.session_state.predicted_price))
+            shown_error = result.get("error_percent", error_percent)
             st.metric("Estimated Price Range", str(low) + " - " + str(high) + " Lakhs")
             st.caption(
                 "Best estimate: " + str(st.session_state.predicted_price)
-                + " Lakhs (our model is off by about 24% on average)"
+                + " Lakhs, about " + str(int(result.get("price_per_sqft", 0))) + " rupees per sqft "
+                + "(our model is off by about " + str(round(shown_error)) + "% on average)"
             )
 
         with col2:
@@ -205,8 +257,89 @@ with tab1:
             else:
                 st.write("No similar properties found for comparison")
 
+        for warning in result.get("warnings", []):
+            st.warning(warning)
+
         if st.session_state.verdict is not None:
-            st.write("Asking price check:", st.session_state.verdict)
+            difference = result.get("difference_percent")
+            verdict_text = "Asking price check: " + st.session_state.verdict
+            if difference is not None:
+                verdict_text += " (" + ("+" if difference > 0 else "") + str(difference) + "% vs our estimate)"
+            if st.session_state.verdict == "Looks fairly priced":
+                st.success(verdict_text)
+            elif st.session_state.verdict == "Looks overpriced":
+                st.error(verdict_text)
+            else:
+                st.info(verdict_text)
+
+        # the "why this price" breakdown. the backend uses shap to split the
+        # estimate into a starting price plus one push up or down per factor
+        if st.session_state.base_price is not None and len(st.session_state.price_factors) > 0:
+            with st.container(border=True):
+                st.markdown("### Why this price?")
+                st.write(
+                    "We start from the average property in our data, "
+                    + str(st.session_state.base_price) + " Lakhs, and each factor "
+                    "below pushes the estimate up or down. Biggest effect first."
+                )
+
+                for factor in st.session_state.price_factors:
+                    effect = factor["effect"]
+                    if effect >= 0:
+                        effect_text = ":green[+" + str(round(effect, 2)) + " Lakhs]"
+                    else:
+                        effect_text = ":red[" + str(round(effect, 2)) + " Lakhs]"
+                    st.markdown(effect_text + "  -  " + factor["name"])
+
+                st.caption(
+                    "Starting price plus all the factors adds up to the best estimate of "
+                    + str(st.session_state.predicted_price) + " Lakhs."
+                )
+
+        # a plain text summary the user can save or share
+        summary_lines = [
+            "Real Estate AVM - price estimate",
+            "Area: " + selected_location,
+            "Property: " + str(bedrooms) + " BHK, " + str(bathrooms) + " bath, " + str(size_sqft) + " sqft",
+            "Best estimate: " + str(st.session_state.predicted_price) + " Lakhs",
+            "Likely range: " + str(low) + " - " + str(high) + " Lakhs",
+        ]
+        if st.session_state.verdict is not None:
+            summary_lines.append("Asking price check: " + st.session_state.verdict)
+        summary_lines.append("")
+        summary_lines.append("Why this price (starting from " + str(st.session_state.base_price) + " Lakhs):")
+        for factor in st.session_state.price_factors:
+            summary_lines.append("  " + ("+" if factor["effect"] >= 0 else "") + str(factor["effect"])
+                                 + " Lakhs  " + factor["name"])
+        st.download_button(
+            "Download this estimate",
+            data="\n".join(summary_lines),
+            file_name="price_estimate.txt",
+        )
+
+        # home loan EMI: the standard formula P x r x (1+r)^n / ((1+r)^n - 1)
+        with st.expander("Home loan EMI calculator"):
+            loan_col1, loan_col2, loan_col3 = st.columns(3)
+            down_payment_percent = loan_col1.number_input("Down payment (%)", 0, 90, 20, step=5)
+            interest_rate = loan_col2.number_input("Interest rate (% a year)", 1.0, 20.0, 8.5, step=0.1)
+            years = loan_col3.number_input("Loan length (years)", 1, 30, 20, step=1)
+
+            price_rupees = st.session_state.predicted_price * 100000
+            loan_amount = price_rupees * (1 - down_payment_percent / 100)
+            monthly_rate = interest_rate / 12 / 100
+            months = years * 12
+
+            if loan_amount > 0:
+                growth = (1 + monthly_rate) ** months
+                emi = loan_amount * monthly_rate * growth / (growth - 1)
+                total_interest = emi * months - loan_amount
+                st.metric("Monthly EMI", "Rs " + format(round(emi), ","))
+                st.caption(
+                    "Loan of Rs " + format(round(loan_amount), ",") + " over " + str(years)
+                    + " years. Total interest paid: Rs " + format(round(total_interest), ",") + "."
+                )
+            else:
+                st.caption("No loan needed with a 100% down payment.")
 
         st.info("Check the other tabs to see similar properties and nearby areas.")
 
@@ -228,16 +361,6 @@ with tab2:
 
     st.write("Found", len(filtered), "matching properties")
 
-    # every property in a location shares the same coordinates, so they would
-    # all stack into one dot. spread them in a small circle around the real
-    # point so each one can be seen and hovered separately
-    filtered = filtered.copy()
-    if len(filtered) > 0:
-        spread = 0.004
-        angles = [2 * math.pi * i / len(filtered) for i in range(len(filtered))]
-        filtered["lat"] = [lat + spread * math.cos(a) for lat, a in zip(filtered["lat"], angles)]
-        filtered["lon"] = [lon + spread * math.sin(a) for lon, a in zip(filtered["lon"], angles)]
-
     your_price = st.session_state.predicted_price if st.session_state.predicted_price is not None else 0
 
     your_property = pd.DataFrame([{
@@ -249,8 +372,8 @@ with tab2:
         "total_sqft_clean": size_sqft
     }])
 
-    # your property is drawn first and bigger, so the red listings
-    # sit on top of it and stay visible even at the same coordinates
+    # every listing in an area shares the area's coordinates (we geocoded area
+    # names, not street addresses), so the map shows one marker for the area
     layers = [pdk.Layer(
         "ScatterplotLayer",
         data=your_property,
@@ -260,21 +383,7 @@ with tab2:
         pickable=True,
     )]
 
-    if len(filtered) > 0:
-        layers.append(pdk.Layer(
-            "ScatterplotLayer",
-            data=filtered,
-            get_position="[lon, lat]",
-            get_radius=25,
-            get_fill_color=[255, 60, 60],
-            pickable=True,
-        ))
-
     st.write("The blue marker is the area you selected. Zoom in for a closer look.")
-
-    # only keep the first layer (your property). the red listing dots were all
-    # at the same area point, so they drew as one big circle instead of separate dots
-    layers = layers[:1]
 
     st.pydeck_chart(pdk.Deck(
         layers=layers,
@@ -290,11 +399,8 @@ with tab2:
     # so it is off by default and only runs when the user wants it
     show_estimates = st.checkbox("Show our estimate for each listing")
 
-    # small helper so distances read as 1.6 km instead of 1.63492
-    def listing_distance(value):
-        if value is None or pd.isna(value):
-            return "not found"
-        return str(round(float(value), 1)) + " km"
+    # same distance format as the predict tab
+    listing_distance = format_distance
 
     for index, row in filtered.head(20).iterrows():
 
@@ -360,13 +466,16 @@ with tab2:
                     "asking_price": float(row["price"])
                 }
                 try:
-                    listing_response = requests.post("http://127.0.0.1:8000/predict", json=listing_request)
-                    listing_result = listing_response.json()
-                    st.info(
-                        "Our estimate: " + str(listing_result["predicted_price"]) + " Lakhs  -  "
-                        + str(listing_result.get("verdict", ""))
-                    )
-                except:
+                    listing_response = requests.post(BACKEND_URL + "/predict", json=listing_request, timeout=15)
+                    if listing_response.status_code == 200:
+                        listing_result = listing_response.json()
+                        st.info(
+                            "Our estimate: " + str(listing_result["predicted_price"]) + " Lakhs  -  "
+                            + str(listing_result.get("verdict", ""))
+                        )
+                    else:
+                        st.caption("No estimate for this listing (outside what the model accepts)")
+                except requests.exceptions.RequestException:
                     st.caption("Could not get an estimate for this listing")
 
 
@@ -428,7 +537,7 @@ with tab4:
     )
 
     try:
-        importance = pd.read_csv("reports/shap_feature_importance.csv")
+        importance = pd.read_csv(PROJECT_ROOT / "reports" / "shap_feature_importance.csv")
 
         readable_names = {
             "total_sqft_clean": "Size (sqft)",
@@ -448,13 +557,60 @@ with tab4:
 
         st.table(importance[["Factor", "Average effect"]])
 
+        # work out the property vs location split from the numbers themselves
+        property_columns = ["total_sqft_clean", "bhk", "bath"]
+        is_property = importance["feature"].isin(property_columns)
+        total_effect = importance["average_effect_lakhs"].sum()
+        property_share = round(importance.loc[is_property, "average_effect_lakhs"].sum() / total_effect * 100)
+        location_share = 100 - property_share
+
         st.write(
-            "Property features (size, bedrooms, bathrooms) account for about 70% of the "
-            "price effect. Location features account for about 30%. Within location, which "
-            "area a property is in matters much more than how close it is to any single amenity."
+            "Property features (size, bedrooms, bathrooms) account for about "
+            + str(property_share) + "% of the price effect. Location features account for about "
+            + str(location_share) + "%. Within location, which area a property is in matters much "
+            "more than how close it is to any single amenity."
         )
-    except:
+    except FileNotFoundError:
         st.write("Run the SHAP analysis script to see feature importance here.")
+
+    summary_chart = PROJECT_ROOT / "reports" / "shap_summary.png"
+    if summary_chart.exists():
+        st.image(str(summary_chart), caption="Each dot is one property. Right = pushed the price up, "
+                 "left = pushed it down. Red = high value of that feature, blue = low.")
+
+    st.markdown("---")
+    st.header("Does Location Help? The Experiment")
+    st.write(
+        "We trained the same models three times on the same 9,017 training properties "
+        "and tested them on 2,255 properties they had never seen: with property details only, "
+        "then adding map position and amenity distances, then adding the area's price level."
+    )
+
+    comparison = load_report("reports/model_comparison.csv")
+    if comparison is not None:
+        condition_names = {
+            "area_rate_x_size": "Baseline: area rate x size",
+            "property_only": "Property only",
+            "plus_amenities": "+ position and amenities",
+            "plus_area_price": "+ area price level (full)",
+        }
+        table = comparison.copy()
+        table["Features used"] = table["condition"].map(condition_names).fillna(table["condition"])
+        table = table.rename(columns={
+            "model": "Model", "rmse": "RMSE (Lakhs)", "mae": "MAE (Lakhs)",
+            "mape_percent": "MAPE (%)", "r2": "R2",
+        })
+        st.table(table[["Model", "Features used", "RMSE (Lakhs)", "MAE (Lakhs)", "MAPE (%)", "R2"]])
+        st.caption("Lower RMSE, MAE and MAPE are better. R2 closer to 1 is better.")
+    else:
+        st.write("Run backend/models/train_random_forest_xgboost.py to see the comparison here.")
+
+    if model_error is not None and "within_20_percent" in model_error.columns:
+        error_row = model_error.iloc[0]
+        e1, e2, e3 = st.columns(3)
+        e1.metric("Average error", str(error_row["mape_percent"]) + "%")
+        e2.metric("Within 10% of real price", str(error_row["within_10_percent"]) + "%")
+        e3.metric("Within 20% of real price", str(error_row["within_20_percent"]) + "%")
 
     st.markdown("---")
     st.header("How It Works")

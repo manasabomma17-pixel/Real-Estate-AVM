@@ -61,6 +61,15 @@ for i, loc in enumerate(unique_locations):
         location_coords[loc] = (None, None)
     time.sleep(1)  # wait between requests so we don't overload the server
 
+# save one row per area, so compute_amenity_distances.py can look up what is
+# near each area without geocoding again
+coords = pd.DataFrame(
+    [(loc, lat, lon) for loc, (lat, lon) in location_coords.items()],
+    columns=["location", "lat", "lon"]
+)
+coords.to_csv("data/processed/bangalore_location_coords.csv", index=False)
+print("Saved coordinates for", len(coords), "areas")
+
 data["lat"] = data["location"].apply(lambda x: location_coords[x][0])
 data["lon"] = data["location"].apply(lambda x: location_coords[x][1])
 

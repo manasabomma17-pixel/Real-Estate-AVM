@@ -1,22 +1,39 @@
-experiment_name: "baseline_v1"
+# One place for the settings every model script shares.
+# data_processing/prepare_model_data.py reads this file.
+
+experiment_name: "bangalore_location_effect"
 random_seed: 42
 
 dataset:
-  version: "v1"
-  primary_market: "king_county_wa"
-  secondary_market: "cook_county_il"
-  date_range: ["2016-01-01", "2024-12-31"]
-
-feature_set: "property_only"
+  name: "Bengaluru House Price Data (Kaggle)"
+  path: "data/processed/bangalore_final_dataset.csv"
+  target: "price"          # in Lakhs
+  rows_raw: 13320
+  rows_final: 11672        # after cleaning and geocoding
+  rows_after_trim: 11272   # after dropping the extreme 1% at each end
 
 split:
   type: "random"
   test_size: 0.2
 
-model:
-  type: "linear_regression"
-  hyperparameters: {}
+outlier_trim:
+  lower_quantile: 0.01
+  upper_quantile: 0.99
 
-evaluation:
-  metrics: ["rmse", "mae", "mape", "r2"]
-  compute_prediction_intervals: false
+features:
+  property: ["bhk", "bath", "total_sqft_clean"]
+  location: ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "location_price"]
+
+model:
+  type: "xgboost"
+  file: "backend/models/trained_model.pkl"
+  tuning: "RandomizedSearchCV, 25 tries, 3-fold CV, scored on RMSE"
+
+app:
+  fair_range_percent: 10   # asking price within +-10% of the estimate counts as fair
+  fallback_error_percent: 23.7   # used only if reports/model_error.csv is missing
+  # the sizes the model was trained on, after trimming. tree models cannot
+  # extrapolate, so the API warns when a request falls outside these
+  training_sqft_min: 500
+  training_sqft_max: 5400
+  training_bhk_max: 10

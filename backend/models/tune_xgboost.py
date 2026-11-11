@@ -1,46 +1,40 @@
-import pandas as pd
-import numpy as np
+"""
+Tunes XGBoost and saves the model the API serves.
+
+RandomizedSearchCV tries 25 random combinations of settings, scoring each one
+with 3-fold cross-validation on the training rows only. The test rows are kept
+aside until the end, so the final score is honest.
+
+Saves:
+- backend/models/trained_model.pkl      (only if tuning beat the default model)
+- data/processed/location_lookup.csv    (what the API needs for each area)
+- reports/best_params.csv               (the settings that won)
+
+Run from the project folder:  python -m backend.models.tune_xgboost
+"""
+
 import joblib
-from sklearn.model_selection import train_test_split, RandomizedSearchCV
+import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-data = pd.read_csv("data/processed/bangalore_final_dataset.csv")
-print("Total rows:", len(data))
+from data_processing.prepare_model_data import (
+    ALL_FEATURES,
+    RANDOM_SEED,
+    TARGET,
+    build_location_lookup,
+    prepare_train_test,
+)
 
-data["bath"] = data["bath"].fillna(0)
-data["dist_to_school_km"] = data["dist_to_school_km"].fillna(data["dist_to_school_km"].median())
-data["dist_to_hospital_km"] = data["dist_to_hospital_km"].fillna(data["dist_to_hospital_km"].median())
-data["dist_to_transit_km"] = data["dist_to_transit_km"].fillna(data["dist_to_transit_km"].median())
-
-data["price_per_sqft"] = data["price"] / data["total_sqft_clean"]
-low_limit = data["price_per_sqft"].quantile(0.01)
-high_limit = data["price_per_sqft"].quantile(0.99)
-sqft_low = data["total_sqft_clean"].quantile(0.01)
-sqft_high = data["total_sqft_clean"].quantile(0.99)
-data = data[(data["price_per_sqft"] >= low_limit) & (data["price_per_sqft"] <= high_limit)]
-data = data[(data["total_sqft_clean"] >= sqft_low) & (data["total_sqft_clean"] <= sqft_high)]
+data, train_data, test_data, location_price, overall_price = prepare_train_test()
 print("Rows after removing outliers:", len(data))
 
-train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
-
-location_avg_price = train_data.groupby("location")["price_per_sqft"].median()
-overall_avg_price = train_data["price_per_sqft"].median()
-
-train_data["location_price"] = train_data["location"].map(location_avg_price).fillna(overall_avg_price)
-test_data["location_price"] = test_data["location"].map(location_avg_price).fillna(overall_avg_price)
-
-features = [
-    "bhk", "bath", "total_sqft_clean",
-    "lat", "lon",
-    "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km",
-    "location_price"
-]
-
-x_train = train_data[features]
-y_train = train_data["price"]
-x_test = test_data[features]
-y_test = test_data["price"]
+x_train = train_data[ALL_FEATURES]
+y_train = train_data[TARGET]
+x_test = test_data[ALL_FEATURES]
+y_test = test_data[TARGET]
 
 baseline_predictions = test_data["location_price"] * test_data["total_sqft_clean"]
 baseline_rmse = np.sqrt(mean_squared_error(y_test, baseline_predictions))
@@ -61,7 +55,7 @@ def show_results(model, name):
 
 
 print("\n--- Before tuning ---")
-default_model = XGBRegressor(n_estimators=100, random_state=42)
+default_model = XGBRegressor(n_estimators=100, random_state=RANDOM_SEED)
 default_model.fit(x_train, y_train)
 default_rmse = show_results(default_model, "XGBoost (default)")
 
@@ -76,12 +70,12 @@ settings_to_try = {
 print("\n--- Tuning (this takes a few minutes) ---")
 
 search = RandomizedSearchCV(
-    XGBRegressor(random_state=42),
+    XGBRegressor(random_state=RANDOM_SEED),
     param_distributions=settings_to_try,
     n_iter=25,
     cv=3,
     scoring="neg_root_mean_squared_error",
-    random_state=42,
+    random_state=RANDOM_SEED,
     n_jobs=-1,
     verbose=1,
 )
@@ -101,6 +95,13 @@ print("\nTuning improved RMSE by", round(change, 1), "% compared to the default 
 
 if tuned_rmse < default_rmse:
     joblib.dump(tuned_model, "backend/models/trained_model.pkl")
+    pd.DataFrame([search.best_params_]).to_csv("reports/best_params.csv", index=False)
     print("Tuned model is better - saved to backend/models/trained_model.pkl")
 else:
     print("Tuned model is NOT better - keeping the existing model")
+
+# the API looks up each area's position, distances and price level here,
+# built from the same rows and the same training medians as the model
+lookup = build_location_lookup(data, location_price, overall_price)
+lookup.to_csv("data/processed/location_lookup.csv", index=False)
+print("Saved location lookup for", len(lookup), "areas")
