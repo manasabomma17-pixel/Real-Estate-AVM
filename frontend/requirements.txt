@@ -1,0 +1,7 @@
+# what the Streamlit app needs (used by Streamlit Community Cloud, which
+# reads this file because it sits next to frontend/app.py)
+streamlit==1.63.0
+pandas==3.0.5
+numpy==2.5.3
+pydeck==0.9.3
+requests==2.34.2

@@ -31,6 +31,9 @@ model:
 
 app:
   fair_range_percent: 10   # asking price within +-10% of the estimate counts as fair
+  # where today's-market factors come from (data/processed/price_adjustment.csv,
+  # built by data_processing/build_price_adjustment.py)
+  market_adjustment_source: "Home Bazaar, Property Rates in Bangalore, updated 22 Oct 2026 (average asking rates per locality)"
   fallback_error_percent: 23.7   # used only if reports/model_error.csv is missing
   # the sizes the model was trained on, after trimming. tree models cannot
   # extrapolate, so the API warns when a request falls outside these

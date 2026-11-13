@@ -7,9 +7,8 @@ Interactive docs:             http://127.0.0.1:8000/docs
 """
 
 import joblib
-import numpy as np
 import pandas as pd
-import shap
+import xgboost as xgb
 from fastapi import FastAPI, HTTPException
 
 from backend.config import PROJECT_ROOT, load_config
@@ -34,10 +33,20 @@ model = joblib.load(PROJECT_ROOT / "backend" / "models" / "trained_model.pkl")
 location_lookup = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "location_lookup.csv")
 location_lookup = location_lookup.set_index("location")
 
-# shap tells us how much each feature pushed this one property's price up or
-# down. building the explainer once at startup keeps every request fast.
-explainer = shap.TreeExplainer(model)
-BASE_PRICE = round(float(np.array(explainer.expected_value).reshape(-1)[0]), 2)
+# SHAP values tell us how much each feature pushed this one property's price
+# up or down. XGBoost can work out exact SHAP values for its own trees
+# (pred_contribs=True), the same TreeSHAP method the shap library uses, so the
+# server does not need the heavy shap package. this keeps it small enough for
+# free hosting. backend/models/explain_model.py still uses shap for the charts
+booster = model.get_booster()
+
+
+def shap_contributions(features):
+    """returns (one SHAP value per feature, the base value) for a single row.
+    XGBoost puts the base value (the average prediction) in the last column"""
+    contributions = booster.predict(xgb.DMatrix(features), pred_contribs=True)
+    return contributions[0, :-1], float(contributions[0, -1])
+
 
 # how far the asking price can be from our estimate and still count as fair
 FAIR_RANGE_PERCENT = app_settings["fair_range_percent"]
@@ -54,6 +63,34 @@ def load_model_error():
 
 model_error = load_model_error()
 ERROR_PERCENT = float(model_error["mape_percent"])
+
+MARKET_SOURCE = app_settings.get("market_adjustment_source", "")
+
+
+def load_market_factors():
+    """today's-market factors per area, made by data_processing/build_price_adjustment.py.
+    returns ({area: factor}, city factor). without the file nothing is adjusted"""
+    path = PROJECT_ROOT / "data" / "processed" / "price_adjustment.csv"
+    try:
+        table = pd.read_csv(path)
+    except FileNotFoundError:
+        return {}, 1.0
+    city = table.loc[table["location"] == "_city_", "factor"]
+    city_factor = float(city.iloc[0]) if len(city) else 1.0
+    areas = table[table["location"] != "_city_"].set_index("location")["factor"].to_dict()
+    return areas, city_factor
+
+
+AREA_FACTORS, CITY_FACTOR = load_market_factors()
+
+
+def market_factor(location):
+    """how much prices in this area have risen since our data: (factor, basis)"""
+    if location in AREA_FACTORS:
+        return float(AREA_FACTORS[location]), "area"
+    if CITY_FACTOR != 1.0:
+        return CITY_FACTOR, "city"
+    return 1.0, "none"
 
 
 def km_text(value):
@@ -79,6 +116,24 @@ def build_features(request, location_row):
         "location_price": location_row["location_price"],
     }
     return pd.DataFrame([row])[FEATURES]
+
+
+def _base_price():
+    """the base value is the same for every property, so it is worked out once
+    at startup from any valid row"""
+    area = location_lookup.iloc[0]
+    sample = pd.DataFrame([{
+        "bhk": 2, "bath": 2, "total_sqft_clean": 1200,
+        "lat": area["lat"], "lon": area["lon"],
+        "dist_to_school_km": area["dist_to_school_km"],
+        "dist_to_hospital_km": area["dist_to_hospital_km"],
+        "dist_to_transit_km": area["dist_to_transit_km"],
+        "location_price": area["location_price"],
+    }])[FEATURES]
+    return round(shap_contributions(sample)[1], 2)
+
+
+BASE_PRICE = _base_price()
 
 
 def build_factors(features, shap_values, location_name):
@@ -163,6 +218,10 @@ def model_info():
         "base_price": BASE_PRICE,
         "fair_range_percent": FAIR_RANGE_PERCENT,
         "error": {key: float(value) for key, value in model_error.items()},
+        "data_period": "about 2017-2019",
+        "city_market_factor": CITY_FACTOR,
+        "areas_with_own_factor": len(AREA_FACTORS),
+        "market_source": MARKET_SOURCE,
     }
 
 
@@ -182,7 +241,7 @@ def predict(request: PredictionRequest):
     # the starting point is the average property in the training data.
     # every factor adds to or subtracts from it, and they add up to the
     # model's prediction
-    shap_values = explainer.shap_values(features)[0]
+    shap_values, _ = shap_contributions(features)
     factors = build_factors(features, shap_values, request.location)
 
     # the range uses the model's measured average error on unseen test data
@@ -193,10 +252,18 @@ def predict(request: PredictionRequest):
     # 1 Lakh = 1,00,000 rupees
     price_per_sqft = round(predicted_price * 100000 / request.size_sqft, 0)
 
+    # bring the estimate up to today's market. asking prices people paste from
+    # property sites are today's prices, so the verdict compares with this
+    factor, basis = market_factor(request.location)
+    today_price = round(predicted_price * factor, 2)
+    today_low = round(price_low * factor, 2)
+    today_high = round(price_high * factor, 2)
+    today_price_per_sqft = round(today_price * 100000 / request.size_sqft, 0)
+
     verdict = None
     difference_percent = None
     if request.asking_price is not None:
-        verdict, difference_percent = price_verdict(request.asking_price, predicted_price)
+        verdict, difference_percent = price_verdict(request.asking_price, today_price)
 
     return PredictionResponse(
         predicted_price=predicted_price,
@@ -210,4 +277,11 @@ def predict(request: PredictionRequest):
         base_price=BASE_PRICE,
         factors=factors,
         warnings=build_warnings(request),
+        today_price=today_price,
+        today_low=today_low,
+        today_high=today_high,
+        today_price_per_sqft=today_price_per_sqft,
+        market_factor=round(factor, 3),
+        market_basis=basis,
+        market_source=MARKET_SOURCE if basis != "none" else None,
     )

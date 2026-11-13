@@ -1,0 +1,13 @@
+# what the FastAPI backend needs to serve predictions (used by Render).
+# versions match the ones the model was trained and tested with.
+# shap is not needed here: XGBoost computes the SHAP values itself
+pandas==3.0.5
+numpy==2.5.3
+scipy==1.18.1
+scikit-learn==1.9.1
+xgboost==3.4.1
+joblib==1.6.0
+pyyaml==6.0.3
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic==2.13.5

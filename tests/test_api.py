@@ -88,3 +88,23 @@ def test_warning_for_size_outside_training_data():
 
 def test_model_info_has_error():
     assert model_info()["error"]["mape_percent"] > 0
+
+
+def test_base_price_matches_the_shap_library():
+    # XGBoost's own SHAP values replaced the shap library in the server.
+    # the shap library gave a base value of 102.65 Lakhs for this model
+    assert abs(BASE_PRICE - 102.65) < 0.5
+
+
+
+def test_today_price_uses_the_market_factor():
+    result = predict(make_request())
+    assert result.market_basis == "area"           # Whitefield has its own published rate
+    assert result.market_factor > 1
+    assert abs(result.today_price - result.predicted_price * result.market_factor) < 0.05
+    assert result.today_low < result.today_price < result.today_high
+
+
+def test_verdict_compares_with_todays_price():
+    today = predict(make_request()).today_price
+    assert predict(make_request(asking_price=round(today))).verdict == "Looks fairly priced"

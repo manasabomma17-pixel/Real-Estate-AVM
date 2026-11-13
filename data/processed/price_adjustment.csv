@@ -1,0 +1,66 @@
+location,published_name,listings,our_rate,current_rate,raw_factor,factor
+Akshaya Nagar,Akshaya Nagar,61,5144,9550,1.857,1.854
+Banashankari,Banashankari,71,5789,13100,2.263,2.171
+Banaswadi,Banaswadi,15,5159,8500,1.648,1.761
+Bannerghatta Road,Bannerghatta,149,5379,12450,2.315,2.259
+Basavangudi,Basavangudi,31,9810,15150,1.544,1.662
+Begur,Begur,15,4851,10500,2.165,1.982
+Bellandur,Bellandur,94,5339,15400,2.884,2.702
+Benson Town,Benson Town,15,14574,16300,1.118,1.533
+Bommanahalli,Bommanahalli,35,4569,6650,1.455,1.597
+Bommasandra,Bommasandra,35,3917,7200,1.838,1.841
+Brookefield,Brookefield,47,5986,11250,1.879,1.869
+BTM Layout,BTM Layout,14,5493,12800,2.33,2.045
+Budigere,Budigere,54,4993,12100,2.423,2.267
+Cooke Town,Cooke Town,16,10755,14200,1.32,1.612
+CV Raman Nagar,CV Raman Nagar,43,5140,7000,1.362,1.515
+Devanahalli,Devanahalli,41,5026,9500,1.89,1.875
+Electronic City,Electronic City,282,4565,7200,1.577,1.595
+Frazer Town,Frazer Town,36,9964,10879,1.092,1.361
+Gottigere,Gottigere,47,4321,8650,2.002,1.955
+Gunjur,Gunjur,21,4118,12050,2.926,2.399
+Harlur,Harlur,79,6600,14250,2.159,2.096
+Hebbal,Hebbal,173,7112,14450,2.032,2.013
+Hegde Nagar,Hegde Nagar,47,6659,9100,1.367,1.51
+Hennur Road,Hennur,150,5881,10350,1.76,1.77
+Hoodi,Hoodi,85,5651,15550,2.752,2.579
+Horamavu Agara,Horamavu Agara,41,4220,6650,1.576,1.664
+HSR Layout,HSR Layout,50,4891,12750,2.607,2.389
+Hulimavu,Hulimavu,50,5513,7350,1.333,1.479
+Indira Nagar,Indira Nagar,40,11439,20200,1.766,1.792
+Jakkur,Jakkur,69,6250,11250,1.8,1.81
+Jalahalli,Jalahalli,51,6349,8350,1.315,1.464
+Jayanagar,Jayanagar,7,12116,15000,1.238,1.688
+JP Nagar,JP Nagar,67,5800,10550,1.819,1.825
+Kadugodi,Kadugodi,41,5190,9300,1.792,1.809
+Kaggadasapura,Kaggadasapura,64,4246,7800,1.837,1.839
+Kasavanhalli,Kasavanahalli,78,5654,13600,2.405,2.291
+Kengeri,Kengeri,60,4249,7600,1.789,1.803
+Koramangala,Koramangala,68,8991,16650,1.852,1.85
+KR Puram,KR Puram,86,4295,9800,2.282,2.2
+Kudlu Gate,Kudlu Gate,38,5412,16000,2.956,2.573
+Kundalahalli,Kundalahalli,45,7439,16650,2.238,2.117
+Mahadevpura,Mahadevpura,31,4695,14800,3.152,2.639
+Malleshwaram,Malleshwaram,46,12268,15850,1.292,1.46
+Marathahalli,Marathahalli,174,5500,12300,2.236,2.196
+Nagarbhavi,Nagarbhavi,56,6369,7350,1.154,1.336
+Nagavara,Nagavara,14,5166,11450,2.216,1.998
+Panathur,Panathur,51,6295,15400,2.446,2.277
+Raja Rajeshwari Nagar,Raja Rajeshwari Nagar,168,4226,8350,1.976,1.962
+Rajaji Nagar,Rajaji Nagar,95,13598,19700,1.449,1.518
+Ramamurthy Nagar,Ramamurthy Nagar,70,5449,6000,1.101,1.266
+R.T. Nagar,RT Nagar,34,7197,7500,1.042,1.339
+Sahakara Nagar,Sahakara Nagar,39,6333,9100,1.437,1.575
+Sanjay nagar,Sanjay Nagar,19,6780,14550,2.146,1.992
+Singasandra,Singasandra,26,4729,8150,1.723,1.776
+Subramanyapura,Subramanyapura,43,5462,8450,1.547,1.642
+TC Palaya,TC Palaya,55,5500,8000,1.455,1.559
+Thanisandra,Thanisandra,235,5692,11500,2.02,2.006
+Uttarahalli,Uttarahalli,182,4000,13050,3.262,3.0
+Varthur,Varthur,69,4299,13050,3.036,2.768
+Vidyaranyapura,Vidyaranyapura,33,4909,8600,1.752,1.787
+Vijayanagar,Vijayanagar,37,6644,9050,1.362,1.531
+Whitefield,Whitefield,530,5578,14050,2.519,2.494
+Yelahanka,Yelahanka,208,5089,10350,2.034,2.017
+Yeshwanthpur,Yeshwanthpur,83,5526,12550,2.271,2.188
+_city_,median of all areas,4809,,,1.845,1.845

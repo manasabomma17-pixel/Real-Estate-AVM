@@ -37,3 +37,13 @@ class PredictionResponse(BaseModel):
     base_price: float | None = None  # the average prediction, where SHAP starts
     factors: list[PriceFactor] = []
     warnings: list[str] = []         # e.g. size outside what the model has seen
+
+    # the model learned from 2017-19 listings. these bring its estimate up to
+    # today's market with a published-rate factor for the area (or the city)
+    today_price: float | None = None
+    today_low: float | None = None
+    today_high: float | None = None
+    today_price_per_sqft: float | None = None
+    market_factor: float = 1.0
+    market_basis: str = "none"       # "area", "city" or "none"
+    market_source: str | None = None
