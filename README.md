@@ -1,31 +1,32 @@
 # 🏠 Real Estate AVM: Bangalore
 
-> **Does knowing *where* a home is actually help predict its price, or is it all square footage?**
+> **Found a flat online? Check if the price is fair.**
 
-An **Automated Valuation Model (AVM)** that estimates property prices in Bangalore, explains every estimate, and answers that question with a controlled machine learning experiment.
+An **Automated Valuation Model (AVM)** for Bangalore flats, built as a simple **fair-price checker**. Paste a property ad or type the details, and it gives a fair price at **today's** market level, says whether the seller's price is too high, fair or low, and explains why. Behind it is a controlled machine learning experiment on one question: *does knowing where a home is actually help predict its price?*
 
 ![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
 ![XGBoost](https://img.shields.io/badge/Model-XGBoost-EB5E28)
 ![SHAP](https://img.shields.io/badge/Explainability-SHAP-8E44AD)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
-![Streamlit](https://img.shields.io/badge/App-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-16%20passing-2EA44F)
+![React](https://img.shields.io/badge/Website-React%2019-61DAFB?logo=react&logoColor=black)
+![Tests](https://img.shields.io/badge/tests-73%20passing-2EA44F)
 
 ---
 
 ## Contents
 
 1. [Key findings](#-key-findings)
-2. [How it works](#-how-it-works)
-3. [Quick start](#-quick-start)
-4. [Using the app](#-using-the-app)
-5. [API](#-api)
-6. [The data](#-the-data)
-7. [Results in detail](#-results-in-detail)
-8. [Project structure](#-project-structure)
-9. [Testing](#-testing)
-10. [Limitations and future work](#-limitations-and-future-work)
-11. [Team](#-team)
+2. [The website](#-the-website)
+3. [How it works](#-how-it-works)
+4. [Quick start](#-quick-start)
+5. [Deployment](#-deployment)
+6. [API](#-api)
+7. [The data](#-the-data)
+8. [Results in detail](#-results-in-detail)
+9. [Project structure](#-project-structure)
+10. [Testing](#-testing)
+11. [Limitations and future work](#-limitations-and-future-work)
+12. [Team](#-team)
 
 ---
 
@@ -42,27 +43,51 @@ An **Automated Valuation Model (AVM)** that estimates property prices in Bangalo
 
 - 📉 **Without location, every model loses** to a simple *area rate × size* rule of thumb (baseline RMSE 54.82).
 - 📍 **With location, error drops by 18%**, and the tree models clearly beat the baseline.
-- 🏘️ **It is the area that matters, not the nearest amenity.** SHAP shows size has the largest effect, then the area's price level. Property features make up **69.5%** of the price effect and location **30.5%**. Distance to the nearest school, hospital or bus stop adds very little on its own.
+- 🏘️ **It is the area that matters, not the nearest amenity.** SHAP shows size has the largest effect, then the area's price level. Property features make up **69.5%** of the price effect and location **30.5%**.
 - 🎯 **Final tuned model:** 23.7% average error, R² 0.752, and **56.7% of estimates within 20%** of the real price on 2,255 unseen listings.
+
+---
+
+## 🖥️ The website
+
+Every word on the site is short and simple, so anyone can use it. Details are one tap away instead of paragraphs.
+
+| Page | What you get |
+|---|---|
+| **Check price** | Paste an ad (or type the details), then get a big clear answer: *Price is too high / fair / low*. A **Cheap / Fair / Costly** bar shows the fair range and the seller's price. Tips say what to offer. **Why this price?** opens a SHAP waterfall. Optional building age and a Lakhs/Crore switch |
+| **Compare** | Price per sqft of similar flats, with our price and the seller's price marked |
+| **Places nearby** | The 5 closest schools, hospitals and bus/metro/train stops on a map, from the area centre or from a society name or Google Maps link |
+| **Other areas** | The 10 closest areas and how much cheaper or costlier they are |
+| **Before you buy** | A checklist: visit, RERA number, papers, seller, written agreement, lawyer |
+| **Loan EMI** | Monthly EMI, the bank's down-payment rule, and the best loan length for your salary |
+
+**Example:** a 1,200 sqft, 2 BHK flat in Whitefield listed at **₹1.75 Cr** → our price today **₹1.57 Cr**, fair range ₹1.41–1.72 Cr → **"Price is too high"** (seller asks 12% more). With a 20-year-old building: about ₹1.48 Cr.
+
+**Smart checks**
+- **Today's prices:** the data is from 2017–19, so each estimate is multiplied by how much that area's prices have risen (published 2026 rates, Home Bazaar, Oct 2026; Whitefield ×2.49, city ×1.84). Small areas are pulled toward the city figure.
+- **Typo check:** a seller's price under 30% or over 3× our price is not judged; the site asks *"Did you mean ₹3 Cr?"*
+- **Building age:** the data has no age, so the standard valuer rule (60-year life, 10% salvage, applied only to the rebuild cost at ₹2,500/sqft) is shown separately as a rough guide.
+
+> We do not list flats for sale. Old records appear only as comparisons, clearly labelled.
 
 ---
 
 ## ⚙️ How it works
 
 ```
+OFFLINE (run once, results committed)
 Kaggle listings (13,320)
    │  clean sizes and sqft, geocode area names (Nominatim)
-   ▼
-Amenity distances (OpenStreetMap Overpass + haversine)
-   │  nearest school, hospital, transit stop for each area
-   ▼
-Final dataset (11,672 rows, 901 areas)
-   │  trim outliers, 80/20 split, area price level from training rows only
+   │  nearest school / hospital / transit (OpenStreetMap Overpass)
+   │  5 nearest named places per area, 2026 price factors
    ▼
 Models: baseline → linear → Random Forest / XGBoost → tuned XGBoost → SHAP
-   │
-   ▼
-FastAPI backend  ◄── JSON ──►  Streamlit app
+
+ONLINE
+React website (Vite)  ── fetch, JSON ──►  FastAPI backend
+                                            ├─ XGBoost model + exact SHAP values
+                                            └─ services: tips, area data, ad reader,
+                                               exact location, building age
 ```
 
 **Features used by the model**
@@ -70,55 +95,49 @@ FastAPI backend  ◄── JSON ──►  Streamlit app
 | Group | Features |
 |---|---|
 | Property | bedrooms (`bhk`), bathrooms (`bath`), size (`total_sqft_clean`) |
-| Location | `lat`, `lon`, distance to the nearest school, hospital and transit stop, and `location_price` (the area's median price per sqft, computed from training rows only to avoid data leakage) |
+| Location | `lat`, `lon`, distance to the nearest school, hospital and transit stop, and `location_price` (the area's median price per sqft, from training rows only to avoid leakage) |
 
-**Built with:** pandas · NumPy · geopy · OpenStreetMap · scikit-learn · XGBoost · SHAP · FastAPI · Pydantic · Streamlit · pydeck · pytest
+**Built with:** Python · pandas · NumPy · geopy · OpenStreetMap · scikit-learn · XGBoost · SHAP · FastAPI · Pydantic · React · Vite · Leaflet · pytest
 
 ---
 
 ## 🚀 Quick start
 
-**1. Set up**
+**1. Set up (once)**
 ```bash
 git clone https://github.com/manasabomma17-pixel/Real-Estate-AVM.git
 cd Real-Estate-AVM
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cd frontend && npm install && cd ..
 ```
 
-**2. Start the API** (terminal 1)
+**2. Start everything**
 ```bash
-uvicorn backend.main:app --reload
+bash start_app.sh
 ```
-Interactive docs: http://127.0.0.1:8000/docs
+This starts the API on http://127.0.0.1:8000 (docs at `/docs`) and the website on **http://localhost:5173**. Ctrl+C stops both.
 
-**3. Start the app** (terminal 2)
-```bash
-streamlit run frontend/app.py
-```
-Opens at http://localhost:8501
+Or in two terminals: `uvicorn backend.main:app --reload` and `cd frontend && npm run dev`.
 
-**4. Check everything** (optional)
+**3. Check everything** (optional)
 ```bash
 bash run_checks.sh
 ```
-This runs the experiment, the error measurement, SHAP, the tests and a live API check.
 
-> The processed data and the trained model are committed, so the app works straight away. There is no need to re-run the slow geocoding.
+> The processed data and the trained model are committed, so the app works straight away. The older Streamlit version is kept in `streamlit_app/` (`bash start_streamlit.sh`).
 
 ---
 
-## 🖥️ Using the app
+## ☁️ Deployment
 
-| Tab | What you get |
-|---|---|
-| **Predict Price** | Estimate with a likely range, price per sqft, a comparison with similar listings, an asking-price check (fair / overpriced / underpriced), a **"Why this price?"** breakdown, a downloadable summary and a home loan EMI calculator |
-| **Similar Properties** | Real listings in the same area with the same BHK, shown as cards with a map, plus optional estimates for each listing |
-| **Nearby Neighborhoods** | The 10 closest areas, with price per sqft and how they compare |
-| **How It Works** | SHAP importance, the property-vs-location split, and the full experiment results |
+| Part | Host | Settings |
+|---|---|---|
+| Backend | **Render** (free) | Blueprint from `render.yaml`: installs `backend/requirements.txt`, starts `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
+| Website | **Vercel** (free) | Root directory `frontend`, build `npm run build`, output `dist`. Environment variable `VITE_API_URL` = the Render address |
 
-**Example:** a 1,200 sqft, 2 BHK flat in Whitefield is estimated at **62.81 Lakhs** (range 47.92 to 77.70). An asking price of 80 Lakhs is flagged as **27.4% overpriced**.
+Optional: set `ALLOWED_ORIGINS` on Render to the Vercel address. Both redeploy on every push. Render's free server sleeps when idle, so the first request can take up to a minute; the website says so.
 
 ---
 
@@ -128,8 +147,16 @@ This runs the experiment, the error measurement, SHAP, the tests and a live API 
 |---|---|---|
 | `GET` | `/health` | Status, model version, number of areas |
 | `GET` | `/locations` | The 881 areas the model can price |
-| `GET` | `/model-info` | Features and measured error |
-| `POST` | `/predict` | Estimate, range, verdict, explanation and warnings |
+| `GET` | `/model-info` | Features, measured error, data period, city factor |
+| `POST` | `/predict` | Price (2017–19 and today), range, verdict, SHAP factors, warnings |
+| `GET` | `/areas` | Every area with its position and number of records |
+| `GET` | `/areas/{area}/summary` | Usual rate today, usual price for the BHK, % ready to move |
+| `GET` | `/areas/{area}/places` | 5 nearest schools, hospitals, transit stops (optionally from `lat`, `lon`) |
+| `GET` | `/areas/{area}/comparison` | Today's price per sqft of similar flats |
+| `GET` | `/areas/{area}/nearby` | 10 closest areas with today's rate |
+| `POST` | `/parse-listing` | Details read from a pasted ad, including building age |
+| `POST` | `/locate` | Coordinates of a society, landmark, Maps link or "lat, lon" |
+| `POST` | `/advice` | Short tips and the building-age guide |
 
 <details>
 <summary><b>Example request and response</b></summary>
@@ -137,19 +164,20 @@ This runs the experiment, the error measurement, SHAP, the tests and a live API 
 ```bash
 curl -X POST http://127.0.0.1:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"location": "Whitefield", "size_sqft": 1200, "bedrooms": 2, "bathrooms": 2, "asking_price": 80}'
+  -d '{"location": "Whitefield", "size_sqft": 1200, "bedrooms": 2, "bathrooms": 2, "asking_price": 175}'
 ```
 
 ```json
 {
   "predicted_price": 62.81,
-  "price_low": 47.92,
-  "price_high": 77.7,
-  "error_percent": 23.7,
-  "price_per_sqft": 5234.0,
+  "today_price": 156.65,
+  "today_low": 119.51,
+  "today_high": 193.78,
+  "market_factor": 2.494,
+  "market_basis": "area",
   "verdict": "Looks overpriced",
-  "difference_percent": 27.4,
-  "base_price": 102.65,
+  "difference_percent": 11.7,
+  "base_price": 102.58,
   "factors": [
     {"name": "Size, 1200 sqft", "effect": -26.35},
     {"name": "Bathrooms, 2", "effect": -7.37},
@@ -159,7 +187,7 @@ curl -X POST http://127.0.0.1:8000/predict \
 }
 ```
 
-`factors` are SHAP values: starting from `base_price` (the average property), each one pushes the estimate up or down, and together they add up to `predicted_price`. The response above is shortened to the top three factors.
+`factors` are SHAP values: starting from `base_price` (the average property), each pushes the estimate up or down, and together they add up to `predicted_price` (2017–19 level). `today_price` = `predicted_price` × `market_factor`. The verdict compares the seller's price with `today_price`. The response is shortened.
 </details>
 
 **Input checks:** sizes must be positive and at least 200 sqft per bedroom, with 1 to 20 bedrooms. Invalid input returns `422`, and an unknown area returns `404`.
@@ -168,7 +196,7 @@ curl -X POST http://127.0.0.1:8000/predict \
 
 ## 📊 The data
 
-[**Bengaluru House Price Data**](https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data) on Kaggle (licence: Apache 2.0). Prices are in **Lakhs** (1 Lakh = ₹1,00,000).
+[**Bengaluru House Price Data**](https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data) on Kaggle (licence: Apache 2.0). Prices are in **Lakhs** (1 Lakh = ₹1,00,000; 1 Crore = 100 Lakhs).
 
 | Step | Rows |
 |---|---:|
@@ -177,6 +205,8 @@ curl -X POST http://127.0.0.1:8000/predict \
 | Area successfully geocoded (901 areas) | 11,672 |
 | Extreme 1% of price per sqft and size removed | **11,272** |
 | Train / test split (80/20) | 9,017 / 2,255 |
+
+Extra files for the website: `amenity_places.csv` (5 nearest named places per area), `bangalore_places.csv` (8,448 named places), `price_adjustment.csv` (2026 factors for 64 areas + city), all from OpenStreetMap and Home Bazaar's published rates.
 
 <details>
 <summary><b>Rebuild the data from scratch</b></summary>
@@ -187,6 +217,8 @@ curl -X POST http://127.0.0.1:8000/predict \
 python data_processing/load_bangalore.py              # clean + geocode (~25 min)
 python data_processing/compute_amenity_distances.py   # OpenStreetMap queries (~1 hour)
 python data_processing/build_final_dataset.py         # merge
+python data_processing/fetch_amenity_names.py --bulk  # named places
+python -m data_processing.build_price_adjustment      # 2026 price factors
 ```
 </details>
 
@@ -207,7 +239,7 @@ All models use the **same 9,017 training rows** and are scored on the **same 2,2
 | XGBoost | + area price level (all 9) | 48.28 | 23.88 | 22.7% | 0.732 | +11.9% |
 | **Tuned XGBoost** (served) | all 9 | **46.41** | **23.96** | **23.7%** | **0.752** | **+15.3%** |
 
-Linear, Ridge and Lasso regression were also tested (`reports/baseline_and_linear_results.csv`). All of them did worse than the baseline, which confirms that the relationship between location and price is non-linear.
+Linear, Ridge and Lasso regression were also tested (`reports/baseline_and_linear_results.csv`). All did worse than the baseline, which confirms the relationship is non-linear.
 
 **What drives the price (SHAP)**
 
@@ -234,28 +266,24 @@ Real-Estate-AVM/
 ├── configs/config.yaml               shared settings: seed, split, features, app rules
 ├── data/
 │   ├── raw/bangalore/                Kaggle CSV (not committed)
-│   └── processed/                    cleaned data + location lookup (committed)
-├── data_processing/
-│   ├── load_bangalore.py             clean + geocode
-│   ├── compute_amenity_distances.py  nearest school / hospital / transit
-│   ├── build_final_dataset.py        merge into one table
-│   ├── clean_location_names.py       duplicate and typo analysis of area names
-│   └── prepare_model_data.py         shared preparation for every model
+│   ├── external/                     published 2026 area rates
+│   └── processed/                    cleaned data, places, price factors (committed)
+├── data_processing/                  cleaning, geocoding, amenities, names, factors
 ├── backend/
-│   ├── main.py                       FastAPI app
+│   ├── main.py                       FastAPI app (12 endpoints)
 │   ├── schemas.py                    request / response validation
 │   ├── config.py                     loads config.yaml
-│   └── models/
-│       ├── train_baseline_and_linear.py
-│       ├── train_random_forest_xgboost.py   the main experiment
-│       ├── tune_xgboost.py                  tunes + saves the model and lookup
-│       ├── measure_error.py
-│       ├── explain_model.py                 SHAP
-│       └── trained_model.pkl
-├── frontend/app.py                   Streamlit app
-├── reports/                          results, charts and the viva study guide
-├── tests/                            pytest tests
-├── run_checks.sh                     one command to verify everything
+│   ├── services/                     area_data, suggestions, listing_parser,
+│   │                                 exact_location, building_age
+│   └── models/                       training, tuning, SHAP + trained_model.pkl
+├── frontend/                         React website (Vite)
+│   └── src/                          App.jsx, api.js, format.js, styles.css,
+│                                     components/ (15 components)
+├── streamlit_app/                    older Streamlit version (backup)
+├── reports/                          results, charts, viva study guide, video script
+├── tests/                            73 pytest tests
+├── start_app.sh                      starts the API + website
+├── render.yaml                       backend deployment (Render)
 └── requirements.txt
 ```
 
@@ -279,9 +307,10 @@ python -m backend.models.explain_model
 python -m pytest -q
 ```
 
-There are **16 tests**, covering:
+There are **73 tests**, covering:
 - **Data preparation:** row counts, no missing values, a repeatable split, and no data leakage in the area price level.
-- **API:** valid predictions, price range order, SHAP factors adding up to the estimate, bigger homes costing more, 404 and 422 handling, verdict thresholds, and the size warning.
+- **API:** valid predictions and ranges, SHAP factors adding up to the estimate, today's price using the market factor, the verdict comparing with today's price, 404 and 422 handling, ad reading, tips, and the building-age guide not changing the model's price.
+- **Services:** area summaries, comparisons, nearby areas, nearest places, tip rules, ad parsing, coordinates and distances, and the depreciation rule (20 years = 30%).
 
 ---
 
@@ -289,14 +318,12 @@ There are **16 tests**, covering:
 
 | Limitation | Next step |
 |---|---|
-| Listing (asking) prices, not sale prices | Use property registration data |
+| Listing (asking) prices, not sale prices; 2026 rates are asking rates too | Use property registration data |
 | Location is at area level, not address level | Geocode full addresses where available |
-| No sale dates, so no market trends | Get multi-year transaction data |
-| 167 of 901 areas are missing amenity data (median-filled) | Re-query with retries, and count amenities nearby instead of only the nearest |
-| 21 near-duplicate area names not yet merged | Apply the reviewed name mapping |
-| About 24% average error | Add floor, building age, area type and metro distance as features |
-
-**Scope note:** we originally planned to also test the model against market surges (the 2020-2022 boom), but no Indian city publishes dated transaction data in bulk for free (we checked Bangalore, Mumbai and Delhi). We focused on the core question instead.
+| One growth factor per area, no time series | Use dated transactions or a price index |
+| Building age is a rule of thumb, not learned | Train on data that includes age, floor and condition |
+| 167 of 901 areas are missing amenity data (median-filled) | Re-query with retries, count amenities nearby |
+| About 24% average error | Add floor, area type and metro distance as features |
 
 ---
 
@@ -304,7 +331,7 @@ There are **16 tests**, covering:
 
 | | Role | Owned |
 |---|---|---|
-| **Sherlyn** | Data & Frontend | Cleaning, geocoding, amenity distances, location name analysis, Streamlit dashboard |
-| **Manasa** | Modeling & Backend | Baseline and linear models, Random Forest / XGBoost, tuning, SHAP, FastAPI |
+| **Sherlyn** | Data & Frontend | Cleaning, geocoding, amenity distances and names, 2026 price factors, location name analysis, React website |
+| **Manasa** | Modeling & Backend | Baseline and linear models, Random Forest / XGBoost, tuning, SHAP, FastAPI API and services |
 
-*OJT Project, 2026. Data: Bengaluru House Price Data (Kaggle, Apache 2.0). Amenities and geocoding: © OpenStreetMap contributors.*
+*OJT Project, 2026. Data: Bengaluru House Price Data (Kaggle, Apache 2.0). Amenities, geocoding and map tiles: © OpenStreetMap contributors. 2026 rates: Home Bazaar.*
