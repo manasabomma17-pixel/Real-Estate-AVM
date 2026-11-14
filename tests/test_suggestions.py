@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from frontend.suggestions import area_rates, build_suggestions, cheaper_nearby_areas
+from backend.services.suggestions import area_rates, build_suggestions, cheaper_nearby_areas
 
 data = pd.read_csv("data/processed/bangalore_final_dataset.csv")
 location_info = pd.read_csv("data/processed/location_lookup.csv").set_index("location")
@@ -20,19 +20,19 @@ def titles(asking_price=None, result=RESULT, **changes):
 
 
 def test_overpriced_gets_negotiation_advice():
-    assert "Negotiate the price down" in titles(asking_price=80)
+    assert "Ask for a lower price" in titles(asking_price=80)
 
 
 def test_fair_price_is_called_fair():
-    assert "Fairly priced" in titles(asking_price=63)
+    assert "Price is fair" in titles(asking_price=63)
 
 
 def test_cheap_price_gets_a_caution():
-    assert "Possibly a good deal, but check why" in titles(asking_price=40)
+    assert "Cheap price: find out why" in titles(asking_price=40)
 
 
 def test_no_asking_price_prompts_for_one():
-    assert "Check an asking price" in titles()
+    assert "Add the seller's price" in titles()
 
 
 def test_small_flat_is_flagged():
@@ -40,12 +40,12 @@ def test_small_flat_is_flagged():
 
 
 def test_fewer_bathrooms_is_flagged():
-    assert "Fewer bathrooms than bedrooms" in titles(bedrooms=3, bathrooms=1, size_sqft=1500)
+    assert "Fewer bathrooms" in titles(bedrooms=3, bathrooms=1, size_sqft=1500)
 
 
 def test_model_warnings_are_passed_on():
     result = dict(RESULT, warnings=["Size is larger than any property the model was trained on."])
-    assert "Estimate less reliable" in titles(result=result)
+    assert "Estimate may be less accurate" in titles(result=result)
 
 
 def test_cheaper_areas_are_close_and_cheaper():
@@ -61,5 +61,6 @@ def test_exact_distances_are_used_when_given():
     request = {"location": "Whitefield", "size_sqft": 1200, "bedrooms": 2, "bathrooms": 2, "asking_price": None}
     far = build_suggestions(request, RESULT, data, location_info,
                             exact_distances={"school": 2.5, "hospital": 0.3, "transit": 0.2})
-    travel = [text for kind, title, text in far if title == "Check your daily travel"]
-    assert travel and travel[0].startswith("From the flat's exact location")
+    travel = [text for kind, title, text in far if title == "Far from daily needs"]
+    # the area centre is close to a school, so only the exact spot's 2.5 km school shows up
+    assert travel == ["School: 2.5 km."]

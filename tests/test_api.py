@@ -8,13 +8,17 @@ from pydantic import ValidationError
 from backend.main import (
     BASE_PRICE,
     FAIR_RANGE_PERCENT,
+    advice,
+    area_summary,
     health_check,
+    list_areas,
+    read_listing,
     list_locations,
     model_info,
     predict,
     price_verdict,
 )
-from backend.schemas import PredictionRequest
+from backend.schemas import AdviceRequest, ListingText, PredictionRequest
 
 KNOWN_AREA = "Whitefield"
 
@@ -108,3 +112,40 @@ def test_today_price_uses_the_market_factor():
 def test_verdict_compares_with_todays_price():
     today = predict(make_request()).today_price
     assert predict(make_request(asking_price=round(today))).verdict == "Looks fairly priced"
+
+
+# ----- the helper endpoints the React app uses -----
+
+def test_areas_match_the_locations_list():
+    names = [a["name"] for a in list_areas()["areas"]]
+    assert names == list_locations()["locations"]
+
+
+def test_unknown_area_summary_returns_404():
+    with pytest.raises(HTTPException) as error:
+        area_summary("Not A Real Place")
+    assert error.value.status_code == 404
+
+
+def test_listing_text_is_read():
+    body = read_listing(ListingText(text="2 BHK flat in Whitefield, 1,150 sq.ft, 2 bathrooms. Price: Rs 85 Lac"))
+    assert body["found"] == {"location": "Whitefield", "bedrooms": 2, "bathrooms": 2,
+                             "size_sqft": 1150, "asking_price": 85.0}
+    assert body["missing"] == []
+
+
+def test_advice_for_an_overpriced_flat_says_negotiate():
+    today = predict(make_request()).today_price
+    body = advice(AdviceRequest(location=KNOWN_AREA, size_sqft=1200, bedrooms=2, bathrooms=2,
+                                asking_price=round(today * 1.5)))
+    titles = [s["title"] for s in body["suggestions"]]
+    assert "Ask for a lower price" in titles
+
+
+
+def test_advice_includes_building_age_without_changing_the_model_price():
+    plain = predict(make_request())
+    body = advice(AdviceRequest(location=KNOWN_AREA, size_sqft=1200, bedrooms=2, bathrooms=2, building_age=20))
+    assert body["age"]["depreciation_percent"] == 30.0
+    assert body["age"]["adjusted_price"] < plain.today_price
+    assert body["suggestions"][0]["title"] == "Older building"

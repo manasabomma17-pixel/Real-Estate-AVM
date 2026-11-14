@@ -1,6 +1,6 @@
 """Checks that listing text copied from property sites is read correctly."""
 
-from frontend.listing_parser import parse_listing
+from backend.services.listing_parser import parse_listing
 
 AREAS = ["Whitefield", "Electronic City", "Electronic City Phase II", "Jayanagar", "HSR Layout"]
 
@@ -37,7 +37,7 @@ def test_area_name_must_be_a_whole_word():
 
 
 def test_details_from_a_pasted_link():
-    from frontend.listing_parser import is_link
+    from backend.services.listing_parser import is_link
     link = ("https://www.nobroker.in/property/buy/2-bhk-apartment-for-sale-in-whitefield-"
             "bangalore/8aa98dc59ebfe60c019ec13f371e2e3a/detail?nbFr=list-buy")
     result = parse_listing(link, AREAS)
@@ -62,7 +62,7 @@ def test_text_copied_from_a_listing_page():
 
 
 def test_availability_dates_are_year_and_month():
-    from frontend.listing_parser import availability_text
+    from backend.services.listing_parser import availability_text
     assert availability_text("18-May") == "Possession May 2018"
     assert availability_text("19-Dec") == "Possession December 2019"
     assert availability_text("Ready To Move") == "Ready to move"

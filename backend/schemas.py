@@ -47,3 +47,26 @@ class PredictionResponse(BaseModel):
     market_factor: float = 1.0
     market_basis: str = "none"       # "area", "city" or "none"
     market_source: str | None = None
+
+
+# ----- requests for the helper endpoints the React app uses -----
+
+class ListingText(BaseModel):
+    # text copied from a property website, or a link to the listing
+    text: str = Field(max_length=20000)
+
+
+class PlaceQuery(BaseModel):
+    # a society, street or landmark, a Google Maps link, or "12.93, 77.69"
+    query: str = Field(min_length=1, max_length=2000)
+    area: str = Field(min_length=1)  # the area picked in the form, to check the spot is in it
+
+
+class AdviceRequest(PredictionRequest):
+    # the flat's exact spot, if the user found it, so distances are measured from there
+    exact_lat: float | None = Field(default=None, ge=-90, le=90)
+    exact_lon: float | None = Field(default=None, ge=-180, le=180)
+    # the building's age. the model was not trained with it (our data has no
+    # age), so it only changes the advice and a separate rough adjustment
+    building_age: int | None = Field(default=None, ge=0, le=100)
+    under_construction: bool = False

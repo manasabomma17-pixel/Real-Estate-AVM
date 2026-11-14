@@ -9,23 +9,15 @@ import pydeck as pdk
 import requests
 import streamlit as st
 
-# listing_parser.py and suggestions.py sit next to this file; streamlit puts
-# this folder on the path. streamlit re-runs this script on every change but
-# keeps imported helper files in memory, so they are reloaded here to always
-# use the latest version of them
-import importlib
+# the helper files now live in backend/services, shared with the API that
+# the React app uses. the project folder is put on the path so they import
+import sys
 
-import exact_location
-import listing_parser
-import suggestions as suggestions_module
-
-importlib.reload(exact_location)
-importlib.reload(listing_parser)
-importlib.reload(suggestions_module)
-from exact_location import distances_km, geocode, parse_coordinates
-from exact_location import nearest_places as nearest_from_point
-from listing_parser import is_link, parse_listing
-from suggestions import area_rates, build_suggestions, cheaper_nearby_areas
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from backend.services.exact_location import distances_km, geocode, parse_coordinates  # noqa: E402
+from backend.services.exact_location import nearest_places as nearest_from_point  # noqa: E402
+from backend.services.listing_parser import is_link, parse_listing  # noqa: E402
+from backend.services.suggestions import area_rates, build_suggestions, cheaper_nearby_areas  # noqa: E402
 
 st.set_page_config(page_title="Bangalore Fair Price Checker", page_icon="🏠", layout="centered")
 

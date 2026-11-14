@@ -39,7 +39,20 @@ def distance_text(km):
 
 
 def rupees(value):
-    return "Rs " + format(int(round(value)), ",")
+    """14000 -> '₹14,000' (Indian grouping: 1,23,456)"""
+    digits = str(int(round(value)))
+    if len(digits) > 3:
+        head, tail = digits[:-3], digits[-3:]
+        head = ",".join([head[max(i - 2, 0):i] for i in range(len(head), 0, -2)][::-1])
+        digits = head + "," + tail
+    return "₹" + digits
+
+
+def money(lakhs):
+    """85.4 -> '₹85 L', 156.6 -> '₹1.57 Cr' (1 Crore = 100 Lakh), as the website shows prices"""
+    if lakhs >= 100:
+        return "₹" + format(lakhs / 100, ".2f") + " Cr"
+    return "₹" + str(round(lakhs)) + " L"
 
 
 def area_rates(data):
@@ -112,31 +125,25 @@ def build_suggestions(request, result, data, location_info, nearby_estimates=Non
     area_rows = data[data["location"] == location]
     rates = area_rates(data)
 
+    # every tip is a short title and one or two short sentences in plain words
+
     # 1. the asking price: what to offer
     if asking:
         difference = (asking - estimate) / estimate * 100
         if difference > 10:
-            text = ("The asking price is " + str(round(difference)) + "% above our estimate. "
-                    "A reasonable opening offer would be around " + str(round(estimate)) + " Lakhs, "
-                    "and paying more than " + str(round(high)) + " Lakhs (the top of our range) "
-                    "is hard to justify unless the flat has something extra, such as a high floor, a new "
-                    "building or a good view. The Price Comparison tab shows where this asking price "
-                    "sits against comparable flats.")
-            suggestions.append(("warning", "Negotiate the price down", text))
+            suggestions.append(("warning", "Ask for a lower price",
+                                "Seller asks " + str(round(difference)) + "% more than our price. Offer about "
+                                + money(estimate) + ". Do not pay more than " + money(high) + "."))
         elif difference < -10:
-            text = ("The asking price is " + str(round(abs(difference))) + "% below our estimate. "
-                    "That can be a genuine bargain, but first find out why it is cheap: check the legal "
-                    "title, the building's age and condition, the floor, and any pending dues. Do not skip "
-                    "a site visit.")
-            suggestions.append(("good", "Possibly a good deal, but check why", text))
+            suggestions.append(("good", "Cheap price: find out why",
+                                "Seller asks " + str(round(abs(difference))) + "% less than our price. Check the papers, "
+                                "the building and any unpaid dues. Visit the flat."))
         else:
-            text = ("The asking price is within 10% of our estimate, so it looks fair for this area and "
-                    "size. A small discount of 2-5% is still common to ask for.")
-            suggestions.append(("good", "Fairly priced", text))
+            suggestions.append(("good", "Price is fair",
+                                "Seller's price is close to ours. You can still ask for 2 to 5% off."))
     else:
-        suggestions.append(("info", "Check an asking price",
-                            "Enter the seller's asking price above to see whether it is fair, and how "
-                            "much to offer."))
+        suggestions.append(("info", "Add the seller's price",
+                            "Add the seller's price to see if it is fair."))
 
     # 2. value for money compared with the area
     if len(area_rows) >= MIN_LISTINGS:
@@ -146,111 +153,90 @@ def build_suggestions(request, result, data, location_info, nearby_estimates=Non
             asked_rate = asking * 100000 / size
             gap = (asked_rate - area_rate) / area_rate * 100
             if gap > 15:
-                suggestions.append(("warning", "Pricier than the area average",
-                                    "The asking rate works out to " + rupees(asked_rate) + " per sqft, which is "
-                                    + str(round(gap)) + "% above the typical " + rupees(area_rate)
-                                    + " per sqft in " + location + "."))
+                suggestions.append(("warning", "Costly for this area",
+                                    "Seller asks " + rupees(asked_rate) + " per sqft. Usual here: "
+                                    + rupees(round(area_rate, -2)) + "."))
             elif gap < -15:
-                suggestions.append(("good", "Cheaper than the area average",
-                                    "The asking rate works out to " + rupees(asked_rate) + " per sqft, "
-                                    + str(round(abs(gap))) + "% below the typical " + rupees(area_rate)
-                                    + " per sqft in " + location + "."))
+                suggestions.append(("good", "Cheap for this area",
+                                    "Seller asks " + rupees(asked_rate) + " per sqft. Usual here: "
+                                    + rupees(round(area_rate, -2)) + "."))
         else:
-            suggestions.append(("info", "Typical rate in this area",
-                                "Brought up to today's market, flats in " + location + " typically go for about "
-                                + rupees(round(area_rate, -2)) + " per sqft. Our estimate for this flat is "
+            suggestions.append(("info", "Usual price here",
+                                rupees(round(area_rate, -2)) + " per sqft in " + location + ". This flat: "
                                 + rupees(our_rate) + " per sqft."))
 
     # 3. size compared with similar flats
     same_bhk = area_rows[area_rows["bhk"] == bedrooms]
-    where = "in " + location
+    where = "here"
     if len(same_bhk) < MIN_LISTINGS:
         same_bhk = data[data["bhk"] == bedrooms]
-        where = "across Bangalore"
+        where = "in Bangalore"
     if len(same_bhk) >= MIN_LISTINGS:
         typical = same_bhk["total_sqft_clean"].median()
         gap = (size - typical) / typical * 100
         if gap < -15:
             suggestions.append(("warning", "Smaller than usual",
-                                "At " + str(int(size)) + " sqft, this is " + str(round(abs(gap)))
-                                + "% smaller than a typical " + str(bedrooms) + " BHK " + where + " ("
-                                + str(int(typical)) + " sqft). Check that the rooms are a comfortable size, "
-                                "and ask whether the area quoted is carpet or super built-up."))
+                                str(int(size)) + " sqft. Usual " + str(bedrooms) + " BHK " + where + ": "
+                                + str(int(typical)) + " sqft. Check the room sizes."))
         elif gap > 15:
-            suggestions.append(("good", "More space than usual",
-                                "At " + str(int(size)) + " sqft, this is " + str(round(gap))
-                                + "% larger than a typical " + str(bedrooms) + " BHK " + where + " ("
-                                + str(int(typical)) + " sqft)."))
+            suggestions.append(("good", "Bigger than usual",
+                                str(int(size)) + " sqft. Usual " + str(bedrooms) + " BHK " + where + ": "
+                                + str(int(typical)) + " sqft."))
 
     # 4. bathrooms
     if bathrooms < bedrooms and bedrooms >= 2:
-        suggestions.append(("info", "Fewer bathrooms than bedrooms",
-                            "This is common in older or compact flats, but buyers usually prefer at least "
-                            "one bathroom per bedroom, which can affect resale value."))
+        suggestions.append(("info", "Fewer bathrooms",
+                            "Less than one bathroom per bedroom. This can lower the resale price."))
 
     # 5. everyday access: schools, hospitals, transit
     if exact_distances is None and len(area_rows) > 0 and area_rows["dist_to_transit_km"].isna().all():
-        suggestions.append(("info", "Check nearby amenities yourself",
-                            "We could not get amenity data for " + location + " from OpenStreetMap, so check "
-                            "schools, hospitals and public transport in person."))
+        suggestions.append(("info", "Check schools and transport yourself",
+                            "We have no map data for " + location + "."))
     elif exact_distances is not None or location in location_info.index:
         if exact_distances is not None:
             school, hospital, transit = (exact_distances["school"], exact_distances["hospital"],
                                          exact_distances["transit"])
-            where = "From the flat's exact location"
         else:
             school = location_info.loc[location, "dist_to_school_km"]
             hospital = location_info.loc[location, "dist_to_hospital_km"]
             transit = location_info.loc[location, "dist_to_transit_km"]
-            where = "From the area centre"
         far = []
         if transit > 1:
-            far.append("the nearest bus stop or station is " + distance_text(transit) + " away")
+            far.append("Bus or metro: " + distance_text(transit) + ".")
         if school > 2:
-            far.append("the nearest school is " + distance_text(school) + " away")
+            far.append("School: " + distance_text(school) + ".")
         if hospital > 2:
-            far.append("the nearest hospital or clinic is " + distance_text(hospital) + " away")
+            far.append("Hospital: " + distance_text(hospital) + ".")
         if far:
-            suggestions.append(("warning", "Check your daily travel",
-                                where + ", " + "; ".join(far) + ". Make sure this suits your "
-                                "commute and family needs."))
+            suggestions.append(("warning", "Far from daily needs", " ".join(far)))
         elif max(school, hospital, transit) <= 1:
-            text = ("A school, a hospital or clinic, and public transport are all within 1 km of the "
-                    + ("flat." if exact_distances is not None else "area centre."))
+            text = "School, hospital and bus or metro within 1 km."
             names = [t for t in (named_places or {}).values() if t]
             if names:
                 text += " Nearest: " + "; ".join(names) + "."
-            suggestions.append(("good", "Good everyday access", text))
+            suggestions.append(("good", "Good for daily needs", text))
 
     # 6. what the local market looks like
     if len(area_rows) >= MIN_LISTINGS:
         ready = (area_rows["availability"].astype(str).str.strip() == "Ready To Move").mean() * 100
         if ready < 50:
-            suggestions.append(("warning", "Lots of under-construction flats here",
-                                "Only " + str(round(ready)) + "% of listings in " + location + " are ready to move. "
-                                "If this flat is under construction, check the builder's track record, its RERA "
-                                "registration and the promised possession date."))
+            suggestions.append(("warning", "Many flats still being built",
+                                "Only " + str(round(ready)) + "% are ready to move in here. Check the builder "
+                                "and the RERA number."))
     if len(area_rows) < 10:
-        suggestions.append(("info", "Limited data for this area",
-                            "We have only " + str(len(area_rows)) + " listings for " + location + ", so treat the "
-                            "estimate with extra caution and compare with recent local deals."))
+        suggestions.append(("info", "Few records here",
+                            "Only " + str(len(area_rows)) + " records for " + location + ". Our price may be "
+                            "less accurate."))
 
     # 7. cheaper areas close by, priced for this same flat
     if nearby_estimates:
-        lines = []
-        for area, km, rate, other_estimate in nearby_estimates:
-            saving = estimate - other_estimate
-            line = (area + " (" + distance_text(km) + " away): about " + str(round(other_estimate, 1))
-                    + " Lakhs for the same flat")
-            if saving > 0:
-                line += ", roughly " + str(round(saving, 1)) + " Lakhs less"
-            lines.append(line)
+        lines = [area + " (" + distance_text(km) + "): " + money(other_estimate)
+                 for area, km, rate, other_estimate in nearby_estimates]
         suggestions.append(("info", "Cheaper areas nearby",
-                            "If the budget is tight, the same flat in these nearby areas is estimated lower: "
-                            + "; ".join(lines) + "."))
+                            "Same flat costs less in " + "; ".join(lines) + "."))
 
     # 8. anything the model itself is unsure about
     for warning in result.get("warnings", []):
-        suggestions.append(("warning", "Estimate less reliable", warning))
+        suggestions.append(("warning", "Estimate may be less accurate", warning))
 
     return suggestions

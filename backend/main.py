@@ -1,23 +1,50 @@
 """
 The FastAPI backend. It loads the trained model once at startup and answers
-price requests from the Streamlit app (or anything else that speaks HTTP).
+requests from the React app (or anything else that speaks HTTP).
 
 Run from the project folder:  uvicorn backend.main:app --reload
 Interactive docs:             http://127.0.0.1:8000/docs
 """
 
+import os
+
 import joblib
 import pandas as pd
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import PROJECT_ROOT, load_config
-from backend.schemas import PredictionRequest, PredictionResponse, PriceFactor
+from backend.schemas import (
+    AdviceRequest,
+    ListingText,
+    PlaceQuery,
+    PredictionRequest,
+    PredictionResponse,
+    PriceFactor,
+)
+from backend.services import area_data
+from backend.services.building_age import age_adjustment, age_suggestions, find_building_age
+from backend.services.exact_location import geocode, parse_coordinates
+from backend.services.listing_parser import is_link, parse_listing
+from backend.services.suggestions import area_rates, build_suggestions, cheaper_nearby_areas
 
 app = FastAPI(
     title="Real Estate AVM - Bangalore",
     description="Estimates property prices in Bangalore and explains each estimate.",
-    version="1.0",
+    version="2.0",
+)
+
+# the React app runs on a different address (port 5173 locally, its own
+# domain when deployed), so the browser needs permission to call this API.
+# ALLOWED_ORIGINS can list the app's address; by default anyone may call it,
+# which is fine because the API only reads public data
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in allowed_origins],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 config = load_config()
@@ -174,13 +201,13 @@ def build_warnings(request):
     estimate just stays flat, so the user is told when that happens"""
     warnings = []
     if request.size_sqft < app_settings["training_sqft_min"]:
-        warnings.append("Size is smaller than any property the model was trained on ("
-                        + str(app_settings["training_sqft_min"]) + " sqft), so the estimate is less reliable.")
+        warnings.append("Very small flat. We have few flats under "
+                        + str(app_settings["training_sqft_min"]) + " sqft.")
     if request.size_sqft > app_settings["training_sqft_max"]:
-        warnings.append("Size is larger than any property the model was trained on ("
-                        + str(app_settings["training_sqft_max"]) + " sqft), so the estimate is less reliable.")
+        warnings.append("Very big flat. We have few flats over "
+                        + str(app_settings["training_sqft_max"]) + " sqft.")
     if request.bedrooms > app_settings["training_bhk_max"]:
-        warnings.append("Very few properties in the data have this many bedrooms.")
+        warnings.append("We have very few flats with this many bedrooms.")
     return warnings
 
 
@@ -285,3 +312,138 @@ def predict(request: PredictionRequest):
         market_basis=basis,
         market_source=MARKET_SOURCE if basis != "none" else None,
     )
+
+
+# ----- helper endpoints for the React app -----
+# the app sends what the user typed, and these answer with real numbers from
+# our data, so the browser never needs the data files itself
+
+
+def require_area(area):
+    if not area_data.known(area):
+        raise HTTPException(status_code=404, detail="Unknown location: " + area)
+
+
+@app.get("/areas")
+def list_areas():
+    """every area the model can price, with its map position and record count"""
+    return {"areas": area_data.area_list(), "city_market_factor": round(CITY_FACTOR, 3)}
+
+
+@app.get("/areas/{area}/summary")
+def area_summary(area: str, bedrooms: int = 2):
+    """real numbers about the area (typical rate today, ready-to-move share...)"""
+    require_area(area)
+    return area_data.area_summary(area, bedrooms)
+
+
+@app.get("/areas/{area}/places")
+def area_places(area: str, lat: float | None = None, lon: float | None = None):
+    """the 5 nearest schools, hospitals and transit stops: from the exact spot
+    when lat and lon are given, otherwise from the area's centre"""
+    require_area(area)
+    if lat is not None and lon is not None:
+        return area_data.places_near_point(lat, lon)
+    return area_data.places_near_area(area)
+
+
+@app.get("/areas/{area}/comparison")
+def area_comparison(area: str, bedrooms: int = 2):
+    """price per sqft of comparable flats at today's level, for the chart"""
+    require_area(area)
+    return area_data.comparison(area, bedrooms)
+
+
+@app.get("/areas/{area}/nearby")
+def nearby_areas(area: str):
+    """the 10 closest areas with today's typical rate"""
+    require_area(area)
+    return area_data.nearby_areas(area)
+
+
+@app.post("/parse-listing")
+def read_listing(body: ListingText):
+    """reads area, BHK, size, bathrooms and price out of pasted listing text"""
+    found = parse_listing(body.text, area_data.lookup.index.tolist())
+    missing = [name for name, value in found.items() if not value]
+    age, under_construction = find_building_age(body.text)
+    return {"found": found, "missing": missing, "is_link": is_link(body.text),
+            "building_age": age, "under_construction": under_construction}
+
+
+@app.post("/locate")
+def locate(body: PlaceQuery):
+    """turns a society name, landmark, Google Maps link or coordinates into a
+    position, and says how far it is from the centre of the chosen area"""
+    require_area(body.area)
+    point = parse_coordinates(body.query)
+    label = "the coordinates you gave" if point else None
+    if not point:
+        found = geocode(body.query)
+        if found:
+            # "Prestige Shantiniketan, Whitefield Road, Hoodi, ..." -> the first 3 parts
+            point, label = (found[0], found[1]), ", ".join(found[2].split(", ")[:3])
+    if not point:
+        raise HTTPException(status_code=404, detail=(
+            "Place not found. Try the society name and area, or paste a Google Maps link."))
+
+    away = area_data.km_from_centre(body.area, point[0], point[1])
+    return {"lat": point[0], "lon": point[1], "label": label, "km_from_area_centre": round(away, 2),
+            "far_from_area": away > 5}
+
+
+@app.post("/advice")
+def advice(request: AdviceRequest):
+    """practical suggestions for this flat, worked out from today's estimate,
+    the area's records and the nearest places"""
+    require_area(request.location)
+    extras = {"exact_lat", "exact_lon", "building_age", "under_construction"}
+    result = predict(PredictionRequest(**request.model_dump(exclude=extras)))
+
+    # the suggestions compare asking prices (which are today's) with today's estimate
+    today = result.model_dump()
+    today.update(predicted_price=result.today_price, price_low=result.today_low,
+                 price_high=result.today_high, price_per_sqft=result.today_price_per_sqft)
+
+    # the same flat in cheaper areas close by, priced by the model
+    nearby_estimates = []
+    rates = SUGGESTION_RATES
+    for area, km, rate in cheaper_nearby_areas(request.location, area_data.lookup, rates):
+        other = predict(PredictionRequest(location=area, size_sqft=request.size_sqft,
+                                          bedrooms=request.bedrooms, bathrooms=request.bathrooms))
+        if other.today_price < result.today_price:
+            nearby_estimates.append((area, km, rate, other.today_price))
+
+    if request.exact_lat is not None and request.exact_lon is not None:
+        nearby = area_data.places_near_point(request.exact_lat, request.exact_lon)
+    else:
+        nearby = area_data.places_near_area(request.location)
+    named = {group: (place_text(group, items[0]) if items else None) for group, items in nearby["places"].items()}
+    exact_distances = None
+    if nearby["exact"]:
+        exact_distances = {group: (items[0]["km"] if items else 99) for group, items in nearby["places"].items()}
+
+    items = build_suggestions(
+        request.model_dump(), today, area_data.listings, area_data.lookup, nearby_estimates, named,
+        exact_distances, rate_factor=area_data.market_factor(request.location)[0])
+
+    # building age: what to check for this age, and a rough price adjustment
+    # shown apart from the model's estimate (the model never saw building age)
+    items = age_suggestions(request.building_age, request.under_construction) + items
+    age = None
+    if request.building_age is not None and not request.under_construction:
+        age = age_adjustment(request.size_sqft, request.building_age, result.today_price)
+
+    return {"suggestions": [{"kind": kind, "title": title, "text": text} for kind, title, text in items],
+            "age": age}
+
+
+# median rate and record count per area, worked out once at startup
+SUGGESTION_RATES = area_rates(area_data.listings)
+
+
+def place_text(group, place):
+    text = place["name"] + " (" + km_text(place["km"]) + ")"
+    if group == "transit" and place.get("type"):
+        text += " - " + place["type"]
+    return text

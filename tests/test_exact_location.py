@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from frontend.exact_location import distances_km, nearest_places, parse_coordinates
+from backend.services.exact_location import distances_km, nearest_places, parse_coordinates
 
 
 def test_google_maps_link_with_at_sign():
