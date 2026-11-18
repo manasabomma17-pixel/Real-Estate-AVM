@@ -1,17 +1,20 @@
 """
-Sends the 'forgot password' code by email.
+Sends the 'forgot password' code by email, free, from your own Gmail.
 
-Render's free servers block normal email ports (SMTP), so we send through
-Brevo's web API over HTTPS instead (free: 300 emails a day).
+Render's free servers block normal email ports (SMTP), so the server calls a
+small Google Apps Script web app over HTTPS, and the script sends the email
+with your Gmail (about 100 emails a day, free). The script is in
+docs/send_email_apps_script.js, with setup steps.
 
 Set on the server:
-  BREVO_API_KEY  the API key from Brevo (a secret)
-  MAIL_FROM      the sender email, verified in Brevo
+  MAIL_SCRIPT_URL     the web app address Google gives you (ends in /exec)
+  MAIL_SCRIPT_SECRET  a long random word, the same one saved in the script
 
 Without them (on your laptop) the code is printed in the server log, so you
 can still test the whole flow.
 """
 
+import html as html_text
 import logging
 import os
 
@@ -19,7 +22,6 @@ import requests
 
 from backend.services.auth import RESET_MINUTES
 
-BREVO_URL = "https://api.brevo.com/v3/smtp/email"
 log = logging.getLogger("uvicorn.error")
 
 
@@ -33,7 +35,7 @@ def reset_email(name, code):
             "If you did not ask for this, you can ignore this email. Your password stays the same.\n\n"
             "Real Estate AVM")
     html = ("<div style=\"font-family:Arial,sans-serif;font-size:16px;color:#1f2d27\">"
-            "<p>Hi " + first + ",</p>"
+            "<p>Hi " + html_text.escape(first) + ",</p>"
             "<p>Your code to reset your password is:</p>"
             "<p style=\"font-size:32px;font-weight:bold;letter-spacing:6px\">" + code + "</p>"
             "<p>It works for " + str(RESET_MINUTES) + " minutes.</p>"
@@ -44,22 +46,21 @@ def reset_email(name, code):
 
 
 def send_reset_code(email, name, code):
-    key, sender = os.getenv("BREVO_API_KEY"), os.getenv("MAIL_FROM")
-    if not key or not sender:
-        log.warning("Email is not set up (BREVO_API_KEY, MAIL_FROM). Reset code for %s: %s", email, code)
+    url, secret = os.getenv("MAIL_SCRIPT_URL"), os.getenv("MAIL_SCRIPT_SECRET")
+    if not url or not secret:
+        log.warning("Email is not set up (MAIL_SCRIPT_URL, MAIL_SCRIPT_SECRET). Reset code for %s: %s", email, code)
         return
     subject, text, html = reset_email(name, code)
     try:
+        # Google answers with a redirect to the script's reply; requests follows it
         response = requests.post(
-            BREVO_URL,
-            headers={"api-key": key, "accept": "application/json", "content-type": "application/json"},
-            json={"sender": {"name": "Real Estate AVM", "email": sender},
-                  "to": [{"email": email, "name": name}],
-                  "subject": subject, "textContent": text, "htmlContent": html},
-            timeout=15,
+            url,
+            json={"secret": secret, "to": email, "subject": subject, "text": text, "html": html},
+            timeout=20,
         )
         response.raise_for_status()
+        if response.text.strip() != "ok":
+            raise requests.RequestException("script said: " + response.text.strip()[:200])
     except requests.RequestException as error:
         # logged for us; the user still sees the same message as always
-        detail = getattr(getattr(error, "response", None), "text", "")
-        log.error("Could not send the reset email to %s: %s %s", email, error, detail[:300])
+        log.error("Could not send the reset email to %s: %s", email, error)

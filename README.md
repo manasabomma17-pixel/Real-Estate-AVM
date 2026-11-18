@@ -141,7 +141,7 @@ bash run_checks.sh
 | Backend | **Render** (free) | Blueprint from `render.yaml`: installs `backend/requirements.txt`, starts `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
 | Website | **Vercel** (free) | Root directory `frontend`, build `npm run build`, output `dist`. Environment variable `VITE_API_URL` = the Render address |
 | User accounts | **Neon** Postgres (free) | Render environment variables `DATABASE_URL` (Neon connection string) and `AUTH_SECRET` (auto-generated). Without `DATABASE_URL` the app uses a local SQLite file |
-| Reset emails | **Brevo** (free, 300/day) | Render environment variables `BREVO_API_KEY` and `MAIL_FROM` (a sender email verified in Brevo). Without them the reset code is printed in the server log |
+| Reset emails | **Google Apps Script** + your Gmail (free, ~100/day) | Deploy `docs/send_email_apps_script.js` as a web app (steps inside the file), then set `MAIL_SCRIPT_URL` and `MAIL_SCRIPT_SECRET` on Render. Without them the reset code is printed in the server log |
 
 **Live:** website [real-estate-avm.vercel.app](https://real-estate-avm.vercel.app) · API [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health)
 

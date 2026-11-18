@@ -17,9 +17,10 @@ services:
       # string in the Render dashboard (it is a secret, so not in git)
       - key: DATABASE_URL
         sync: false
-      # "Forgot password" emails go through Brevo's web API (Render's free
-      # plan blocks normal email ports). Set both in the Render dashboard.
-      - key: BREVO_API_KEY
+      # "Forgot password" emails are sent free from your Gmail by a small
+      # Google Apps Script (docs/send_email_apps_script.js). Render's free plan
+      # blocks normal email ports. Set both in the Render dashboard.
+      - key: MAIL_SCRIPT_URL
         sync: false
-      - key: MAIL_FROM
+      - key: MAIL_SCRIPT_SECRET
         sync: false
