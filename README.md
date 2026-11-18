@@ -2,6 +2,10 @@
 
 > **Found a flat online? Check if the price is fair.**
 
+### 🌐 Live website: **[real-estate-avm.vercel.app](https://real-estate-avm.vercel.app)**
+
+Create a free account with your email and a password, then log in to use the app. API: [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health) ([docs](https://real-estate-avm-api.onrender.com/docs)). The free server sleeps when idle, so the first visit can take about a minute to load.
+
 An **Automated Valuation Model (AVM)** for Bangalore flats, built as a simple **fair-price checker**. Paste a property ad or type the details, and it gives a fair price at **today's** market level, says whether the seller's price is too high, fair or low, and explains why. Behind it is a controlled machine learning experiment on one question: *does knowing where a home is actually help predict its price?*
 
 ![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
@@ -136,6 +140,9 @@ bash run_checks.sh
 |---|---|---|
 | Backend | **Render** (free) | Blueprint from `render.yaml`: installs `backend/requirements.txt`, starts `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
 | Website | **Vercel** (free) | Root directory `frontend`, build `npm run build`, output `dist`. Environment variable `VITE_API_URL` = the Render address |
+| User accounts | **Neon** Postgres (free) | Render environment variables `DATABASE_URL` (Neon connection string) and `AUTH_SECRET` (auto-generated). Without `DATABASE_URL` the app uses a local SQLite file |
+
+**Live:** website [real-estate-avm.vercel.app](https://real-estate-avm.vercel.app) · API [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health)
 
 Optional: set `ALLOWED_ORIGINS` on Render to the Vercel address. Both redeploy on every push. Render's free server sleeps when idle, so the first request can take up to a minute; the website says so.
 
