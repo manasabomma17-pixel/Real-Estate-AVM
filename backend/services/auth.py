@@ -6,6 +6,8 @@ User accounts: sign up, log in, and checking who is logged in.
 - After login the browser gets a signed token (a JWT, HS256). Every request
   sends it, and the server checks the signature, so it knows who is asking
   without a database lookup. Tokens expire after 7 days.
+- Forgot password: we email a 6-digit code (valid 15 minutes, 5 tries).
+  Only a keyed hash of the code is saved, never the code itself.
 - Accounts live in Postgres when DATABASE_URL is set (the online server, a
   free Neon database), and in a local SQLite file otherwise (your laptop).
 
@@ -33,6 +35,10 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 SCRYPT_N, SCRYPT_R, SCRYPT_P = 2 ** 14, 8, 1
 
 DEV_SECRET = "dev-only-secret-change-me"
+
+RESET_MINUTES = 15      # how long an emailed code works
+RESET_MAX_TRIES = 5     # wrong codes allowed before it stops working
+RESET_WAIT_SECONDS = 60 # no new email if one was sent less than this ago
 
 
 class AuthError(Exception):
@@ -152,6 +158,9 @@ class UserStore:
         id_column = "SERIAL PRIMARY KEY" if self.postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
         self._run("CREATE TABLE IF NOT EXISTS users (id " + id_column + ", name TEXT NOT NULL, "
                   "email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, created_at BIGINT NOT NULL)")
+        # one waiting reset code per email
+        self._run("CREATE TABLE IF NOT EXISTS reset_codes (email TEXT PRIMARY KEY, code_hash TEXT NOT NULL, "
+                  "expires_at BIGINT NOT NULL, tries INTEGER NOT NULL, sent_at BIGINT NOT NULL)")
 
     def find(self, email):
         row = self._run("SELECT id, name, email, password_hash FROM users WHERE email = ?", (email,), fetch=True)
@@ -165,6 +174,29 @@ class UserStore:
         self._run("INSERT INTO users (name, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
                   (name, email, password_hash, int(time.time())))
         return self.find(email)
+
+    def set_password(self, email, password_hash):
+        self._run("UPDATE users SET password_hash = ? WHERE email = ?", (password_hash, email))
+
+    # reset codes
+
+    def save_code(self, email, code_hash, expires_at, sent_at):
+        self.delete_code(email)
+        self._run("INSERT INTO reset_codes (email, code_hash, expires_at, tries, sent_at) VALUES (?, ?, ?, 0, ?)",
+                  (email, code_hash, expires_at, sent_at))
+
+    def get_code(self, email):
+        row = self._run("SELECT code_hash, expires_at, tries, sent_at FROM reset_codes WHERE email = ?",
+                        (email,), fetch=True)
+        if not row:
+            return None
+        return {"code_hash": row[0], "expires_at": row[1], "tries": row[2], "sent_at": row[3]}
+
+    def add_try(self, email):
+        self._run("UPDATE reset_codes SET tries = tries + 1 WHERE email = ?", (email,))
+
+    def delete_code(self, email):
+        self._run("DELETE FROM reset_codes WHERE email = ?", (email,))
 
 
 # ----- sign up and log in -----
@@ -195,4 +227,53 @@ def log_in(store, email, password):
     # find out which emails have accounts
     if not user or not verify_password(password or "", user["password_hash"]):
         raise AuthError("Wrong email or password.", 401)
+    return public(user), make_token(user)
+
+
+# ----- forgot password -----
+
+def _code_hash(email, code):
+    """keyed with AUTH_SECRET, so a leaked table does not reveal codes"""
+    return hmac.new(_secret(), (email + ":" + code).encode(), hashlib.sha256).hexdigest()
+
+
+def start_reset(store, email, send, now=None):
+    """emails a 6-digit code if the email has an account.
+
+    It answers the same way either way, so nobody can find out which emails
+    have accounts. send(email, name, code) does the actual sending.
+    """
+    now = int(now or time.time())
+    email = clean_email(email)
+    if not EMAIL_PATTERN.match(email):
+        raise AuthError("Please enter a valid email.")
+    user = store.find(email)
+    if not user:
+        return
+    waiting = store.get_code(email)
+    if waiting and now - waiting["sent_at"] < RESET_WAIT_SECONDS:
+        return  # one was just sent: do not flood the inbox
+    code = str(secrets.randbelow(10 ** 6)).zfill(6)
+    store.save_code(email, _code_hash(email, code), now + RESET_MINUTES * 60, now)
+    send(email, user["name"], code)
+
+
+def finish_reset(store, email, code, password, now=None):
+    """checks the code, saves the new password and logs the user in"""
+    now = int(now or time.time())
+    email, code = clean_email(email), (code or "").strip().replace(" ", "")
+    if len(password or "") < MIN_PASSWORD_LENGTH:
+        raise AuthError("Password must be at least " + str(MIN_PASSWORD_LENGTH) + " characters.")
+    waiting = store.get_code(email)
+    if not waiting or waiting["expires_at"] < now:
+        raise AuthError("This code has expired. Please ask for a new code.")
+    if waiting["tries"] >= RESET_MAX_TRIES:
+        store.delete_code(email)
+        raise AuthError("Too many wrong tries. Please ask for a new code.", 429)
+    if not hmac.compare_digest(_code_hash(email, code), waiting["code_hash"]):
+        store.add_try(email)
+        raise AuthError("Wrong code. Please check your email.")
+    store.set_password(email, hash_password(password))
+    store.delete_code(email)
+    user = store.find(email)
     return public(user), make_token(user)

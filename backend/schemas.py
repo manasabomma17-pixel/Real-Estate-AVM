@@ -83,3 +83,13 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str = Field(max_length=200)
     password: str = Field(max_length=200)
+
+
+class ForgotRequest(BaseModel):
+    email: str = Field(max_length=200)
+
+
+class ResetRequest(BaseModel):
+    email: str = Field(max_length=200)
+    code: str = Field(max_length=12)
+    password: str = Field(max_length=200)

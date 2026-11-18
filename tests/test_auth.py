@@ -67,3 +67,75 @@ def test_bearer_header():
     assert auth.user_from_header("Bearer " + token)["id"] == "7"
     assert auth.user_from_header(token) is None
     assert auth.user_from_header(None) is None
+
+
+# ----- forgot password -----
+
+class Outbox:
+    """stands in for the email sender and keeps what would be sent"""
+
+    def __init__(self):
+        self.sent = []
+
+    def __call__(self, email, name, code):
+        self.sent.append((email, name, code))
+
+
+def test_reset_with_emailed_code(store):
+    auth.sign_up(store, "Manasa", "manasa@example.com", "oldpass123")
+    outbox = Outbox()
+    auth.start_reset(store, " Manasa@Example.com ", outbox, now=1000)
+    email, name, code = outbox.sent[0]
+    assert email == "manasa@example.com" and name == "Manasa"
+    assert len(code) == 6 and code.isdigit()
+    assert code not in str(store.get_code(email))  # only a hash is saved
+    user, token = auth.finish_reset(store, email, code, "newpass123", now=1100)
+    assert auth.read_token(token)["email"] == email
+    auth.log_in(store, email, "newpass123")
+    with pytest.raises(auth.AuthError):
+        auth.log_in(store, email, "oldpass123")
+    with pytest.raises(auth.AuthError):  # a code works only once
+        auth.finish_reset(store, email, code, "another123", now=1200)
+
+
+def test_unknown_email_sends_nothing_but_looks_the_same(store):
+    outbox = Outbox()
+    assert auth.start_reset(store, "nobody@example.com", outbox) is None
+    assert outbox.sent == []
+    with pytest.raises(auth.AuthError):
+        auth.start_reset(store, "not-an-email", outbox)
+
+
+def test_code_expires_and_resend_waits(store):
+    auth.sign_up(store, "Sherlyn", "s@example.com", "oldpass123")
+    outbox = Outbox()
+    auth.start_reset(store, "s@example.com", outbox, now=1000)
+    auth.start_reset(store, "s@example.com", outbox, now=1030)  # too soon: no second email
+    assert len(outbox.sent) == 1
+    code = outbox.sent[0][2]
+    with pytest.raises(auth.AuthError) as late:
+        auth.finish_reset(store, "s@example.com", code, "newpass123", now=1000 + 16 * 60)
+    assert "expired" in late.value.message
+
+
+def test_too_many_wrong_codes(store):
+    auth.sign_up(store, "Sherlyn", "s@example.com", "oldpass123")
+    outbox = Outbox()
+    auth.start_reset(store, "s@example.com", outbox, now=1000)
+    code = outbox.sent[0][2]
+    wrong = "000000" if code != "000000" else "111111"
+    for _ in range(auth.RESET_MAX_TRIES):
+        with pytest.raises(auth.AuthError) as error:
+            auth.finish_reset(store, "s@example.com", wrong, "newpass123", now=1010)
+        assert error.value.message.startswith("Wrong code")
+    with pytest.raises(auth.AuthError) as blocked:
+        auth.finish_reset(store, "s@example.com", code, "newpass123", now=1020)
+    assert blocked.value.status == 429
+    auth.log_in(store, "s@example.com", "oldpass123")  # password unchanged
+
+
+def test_reset_email_text():
+    from backend.services.email_sender import reset_email
+    subject, text, html = reset_email("Manasa Bomma", "123456")
+    assert "123456" in subject and "123456" in text and "123456" in html
+    assert text.startswith("Hi Manasa,")

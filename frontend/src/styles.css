@@ -452,6 +452,12 @@ input[type='number']::-webkit-inner-spin-button { opacity: 0.5; }
   background: var(--paper); color: var(--ink); padding: 0 14px; font-weight: 700; font-size: 14px; cursor: pointer;
 }
 .auth-foot { text-align: center; color: var(--ink-soft); font-size: 15px; }
+.auth-foot .link-button:disabled { opacity: 0.6; cursor: progress; }
+.label-row label { font-weight: 700; font-size: 15px; }
+.label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.link-button.small { font-size: 14.5px; }
+.notice .link-button { justify-self: start; }
+.code-input { font-size: 26px; letter-spacing: 0.35em; font-variant-numeric: tabular-nums; text-align: center; }
 @media (max-width: 480px) { .auth-card { padding: 22px; } }
 
 /* who is logged in, in the sidebar */

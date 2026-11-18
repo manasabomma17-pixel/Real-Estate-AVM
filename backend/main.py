@@ -18,7 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.config import PROJECT_ROOT, load_config
 from backend.schemas import (
     AdviceRequest,
+    ForgotRequest,
     LoginRequest,
+    ResetRequest,
     SignupRequest,
     ListingText,
     PlaceQuery,
@@ -26,7 +28,7 @@ from backend.schemas import (
     PredictionResponse,
     PriceFactor,
 )
-from backend.services import area_data, auth
+from backend.services import area_data, auth, email_sender
 from backend.services.building_age import age_adjustment, age_suggestions, find_building_age
 from backend.services.exact_location import geocode, parse_coordinates
 from backend.services.listing_parser import is_link, parse_listing
@@ -41,7 +43,8 @@ app = FastAPI(
 # ----- login: every endpoint needs a logged-in user, except these -----
 # (AUTH_REQUIRED=false turns this off, for example to try /docs quickly)
 AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() != "false"
-PUBLIC_PATHS = {"/health", "/auth/signup", "/auth/login", "/docs", "/redoc", "/openapi.json"}
+PUBLIC_PATHS = {"/health", "/auth/signup", "/auth/login", "/auth/forgot", "/auth/reset",
+                "/docs", "/redoc", "/openapi.json"}
 user_store = auth.UserStore()
 
 
@@ -489,6 +492,27 @@ def log_in(body: LoginRequest):
     """checks the email and password and returns a login token"""
     try:
         user, token = auth.log_in(user_store, body.email, body.password)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    return {"token": token, "user": user}
+
+
+@app.post("/auth/forgot")
+def forgot_password(body: ForgotRequest):
+    """emails a 6-digit code if this email has an account"""
+    try:
+        auth.start_reset(user_store, body.email, email_sender.send_reset_code)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    # the same answer whether or not the email has an account
+    return {"message": "If this email has an account, we sent a 6-digit code to it."}
+
+
+@app.post("/auth/reset")
+def reset_password(body: ResetRequest):
+    """checks the emailed code, saves the new password and logs the user in"""
+    try:
+        user, token = auth.finish_reset(user_store, body.email, body.code, body.password)
     except auth.AuthError as error:
         raise HTTPException(status_code=error.status, detail=error.message)
     return {"token": token, "user": user}

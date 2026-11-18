@@ -4,7 +4,7 @@
 
 ### 🌐 Live website: **[real-estate-avm.vercel.app](https://real-estate-avm.vercel.app)**
 
-Create a free account with your email and a password, then log in to use the app. API: [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health) ([docs](https://real-estate-avm-api.onrender.com/docs)). The free server sleeps when idle, so the first visit can take about a minute to load.
+Create a free account with your email and a password, then log in to use the app. Forgot your password? Click **Forgot password?** and we email you a 6-digit code. API: [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health) ([docs](https://real-estate-avm-api.onrender.com/docs)). The free server sleeps when idle, so the first visit can take about a minute to load.
 
 An **Automated Valuation Model (AVM)** for Bangalore flats, built as a simple **fair-price checker**. Paste a property ad or type the details, and it gives a fair price at **today's** market level, says whether the seller's price is too high, fair or low, and explains why. Behind it is a controlled machine learning experiment on one question: *does knowing where a home is actually help predict its price?*
 
@@ -141,6 +141,7 @@ bash run_checks.sh
 | Backend | **Render** (free) | Blueprint from `render.yaml`: installs `backend/requirements.txt`, starts `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` |
 | Website | **Vercel** (free) | Root directory `frontend`, build `npm run build`, output `dist`. Environment variable `VITE_API_URL` = the Render address |
 | User accounts | **Neon** Postgres (free) | Render environment variables `DATABASE_URL` (Neon connection string) and `AUTH_SECRET` (auto-generated). Without `DATABASE_URL` the app uses a local SQLite file |
+| Reset emails | **Brevo** (free, 300/day) | Render environment variables `BREVO_API_KEY` and `MAIL_FROM` (a sender email verified in Brevo). Without them the reset code is printed in the server log |
 
 **Live:** website [real-estate-avm.vercel.app](https://real-estate-avm.vercel.app) · API [real-estate-avm-api.onrender.com](https://real-estate-avm-api.onrender.com/health)
 
@@ -164,6 +165,10 @@ Optional: set `ALLOWED_ORIGINS` on Render to the Vercel address. Both redeploy o
 | `POST` | `/parse-listing` | Details read from a pasted ad, including building age |
 | `POST` | `/locate` | Coordinates of a society, landmark, Maps link or "lat, lon" |
 | `POST` | `/advice` | Short tips and the building-age guide |
+| `POST` | `/auth/signup`, `/auth/login` | Create an account or log in; returns a login token |
+| `POST` | `/auth/forgot` | Emails a 6-digit reset code (same answer whether or not the email has an account) |
+| `POST` | `/auth/reset` | Checks the code (15 minutes, 5 tries), saves the new password, logs in |
+| `GET` | `/auth/me` | The logged-in user |
 
 <details>
 <summary><b>Example request and response</b></summary>

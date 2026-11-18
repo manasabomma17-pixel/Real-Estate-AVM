@@ -101,6 +101,8 @@ async function logIn(path, data) {
 export const api = {
   signUp: (name, email, password) => logIn('/auth/signup', { name, email, password }),
   logIn: (email, password) => logIn('/auth/login', { email, password }),
+  forgotPassword: (email) => post('/auth/forgot', { email }),
+  resetPassword: (email, code, password) => logIn('/auth/reset', { email, code, password }),
   me: () => request('/auth/me'),
   areas: () => request('/areas'),
   summary: (name, bedrooms) => request(area(name) + '/summary?bedrooms=' + bedrooms),
