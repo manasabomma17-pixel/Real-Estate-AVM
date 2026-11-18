@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { api } from './api.js'
+import { api, logOut, savedLogin, whenLoggedOut } from './api.js'
+import AuthPage from './components/AuthPage.jsx'
 import CheckPrice from './components/CheckPrice.jsx'
 import Compare from './components/Compare.jsx'
 import NearbyAreas from './components/NearbyAreas.jsx'
@@ -29,7 +30,30 @@ const START_FLAT = {
   building_age: '', under_construction: false,
 }
 
+// the login gate: nothing else shows until the user has logged in
 export default function App() {
+  const [user, setUser] = useState(() => savedLogin()?.user || null)
+
+  useEffect(() => {
+    // if the server says the login expired, go back to the login screen
+    whenLoggedOut(() => setUser(null))
+    // check a saved login is still accepted by the server
+    if (savedLogin()) api.me().catch(() => {})
+  }, [])
+
+  if (!user) return <AuthPage onLoggedIn={setUser} />
+  return (
+    <MainApp
+      user={user}
+      onLogOut={() => {
+        logOut()
+        setUser(null)
+      }}
+    />
+  )
+}
+
+function MainApp({ user, onLogOut }) {
   const [page, setPage] = useState(pageFromHash)
   const [areas, setAreas] = useState([])
   const [areasError, setAreasError] = useState(null)
@@ -79,6 +103,10 @@ export default function App() {
             </a>
           ))}
         </nav>
+        <div className="account">
+          <span className="account-name">Hi, {user.name.split(' ')[0]}</span>
+          <button type="button" className="account-logout" onClick={onLogOut}>Log out</button>
+        </div>
         <p className="sidebar-note">We tell you a fair price. We do not sell flats.</p>
       </aside>
 

@@ -70,3 +70,16 @@ class AdviceRequest(PredictionRequest):
     # age), so it only changes the advice and a separate rough adjustment
     building_age: int | None = Field(default=None, ge=0, le=100)
     under_construction: bool = False
+
+
+# ----- accounts -----
+
+class SignupRequest(BaseModel):
+    name: str = Field(max_length=80)
+    email: str = Field(max_length=200)
+    password: str = Field(max_length=200)
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(max_length=200)
+    password: str = Field(max_length=200)

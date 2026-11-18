@@ -11,19 +11,22 @@ import os
 import joblib
 import pandas as pd
 import xgboost as xgb
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import PROJECT_ROOT, load_config
 from backend.schemas import (
     AdviceRequest,
+    LoginRequest,
+    SignupRequest,
     ListingText,
     PlaceQuery,
     PredictionRequest,
     PredictionResponse,
     PriceFactor,
 )
-from backend.services import area_data
+from backend.services import area_data, auth
 from backend.services.building_age import age_adjustment, age_suggestions, find_building_age
 from backend.services.exact_location import geocode, parse_coordinates
 from backend.services.listing_parser import is_link, parse_listing
@@ -35,6 +38,26 @@ app = FastAPI(
     version="2.0",
 )
 
+# ----- login: every endpoint needs a logged-in user, except these -----
+# (AUTH_REQUIRED=false turns this off, for example to try /docs quickly)
+AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() != "false"
+PUBLIC_PATHS = {"/health", "/auth/signup", "/auth/login", "/docs", "/redoc", "/openapi.json"}
+user_store = auth.UserStore()
+
+
+@app.middleware("http")
+async def require_login(request: Request, call_next):
+    """runs before every request: checks the login token in the
+    Authorization header and answers 401 if it is missing or expired"""
+    if not AUTH_REQUIRED or request.method == "OPTIONS" or request.url.path in PUBLIC_PATHS:
+        return await call_next(request)
+    user = auth.user_from_header(request.headers.get("authorization"))
+    if user is None:
+        return JSONResponse({"detail": "Please log in again."}, status_code=401)
+    request.state.user = user
+    return await call_next(request)
+
+
 # the React app runs on a different address (port 5173 locally, its own
 # domain when deployed), so the browser needs permission to call this API.
 # ALLOWED_ORIGINS can list the app's address; by default anyone may call it,
@@ -44,7 +67,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in allowed_origins],
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 config = load_config()
@@ -447,3 +470,34 @@ def place_text(group, place):
     if group == "transit" and place.get("type"):
         text += " - " + place["type"]
     return text
+
+
+# ----- accounts -----
+
+@app.post("/auth/signup")
+def sign_up(body: SignupRequest):
+    """creates an account and logs the user in"""
+    try:
+        user, token = auth.sign_up(user_store, body.name, body.email, body.password)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    return {"token": token, "user": user}
+
+
+@app.post("/auth/login")
+def log_in(body: LoginRequest):
+    """checks the email and password and returns a login token"""
+    try:
+        user, token = auth.log_in(user_store, body.email, body.password)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    return {"token": token, "user": user}
+
+
+@app.get("/auth/me")
+def who_am_i(request: Request):
+    """the logged-in user, read from the token"""
+    user = getattr(request.state, "user", None) or auth.user_from_header(request.headers.get("authorization"))
+    if user is None:
+        raise HTTPException(status_code=401, detail="Please log in again.")
+    return {"user": user}

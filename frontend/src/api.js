@@ -7,6 +7,44 @@ const BASE_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').repla
 // minute to wake, so requests are allowed to take that long
 const TIMEOUT_MS = 75000
 
+// ----- the login token -----
+// kept in the browser so a refresh does not log you out. Browser storage can
+// be switched off, so every read and write is wrapped in try/catch
+const TOKEN_KEY = 'avm-login'
+
+export function savedLogin() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOKEN_KEY) || 'null')
+    // the token's middle part says when it expires; drop it if it has
+    const payload = JSON.parse(atob(saved.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return payload.exp * 1000 > Date.now() ? saved : null
+  } catch {
+    return null
+  }
+}
+
+function saveLogin(login) {
+  try {
+    if (login) localStorage.setItem(TOKEN_KEY, JSON.stringify(login))
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    // storage blocked: the login lasts until the page is closed
+  }
+}
+
+let currentToken = savedLogin()?.token || null
+let onLoggedOut = () => {}
+
+// App gives a function to call when the server says the login has expired
+export function whenLoggedOut(callback) {
+  onLoggedOut = callback
+}
+
+export function logOut() {
+  currentToken = null
+  saveLogin(null)
+}
+
 export class ApiError extends Error {
   constructor(message, status) {
     super(message)
@@ -22,7 +60,10 @@ async function request(path, options = {}) {
     response = await fetch(BASE_URL + path, {
       ...options,
       signal: controller.signal,
-      headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(currentToken ? { Authorization: 'Bearer ' + currentToken } : {}),
+      },
     })
   } catch {
     throw new ApiError(
@@ -34,6 +75,10 @@ async function request(path, options = {}) {
   }
 
   const body = await response.json().catch(() => ({}))
+  if (response.status === 401 && !path.startsWith('/auth/')) {
+    logOut()
+    onLoggedOut()
+  }
   if (!response.ok) {
     // FastAPI sends a list of problems for invalid input (422), a sentence otherwise
     let detail = body.detail
@@ -46,7 +91,17 @@ async function request(path, options = {}) {
 const post = (path, data) => request(path, { method: 'POST', body: JSON.stringify(data) })
 const area = (name) => '/areas/' + encodeURIComponent(name)
 
+async function logIn(path, data) {
+  const body = await post(path, data)
+  currentToken = body.token
+  saveLogin({ token: body.token, user: body.user })
+  return body.user
+}
+
 export const api = {
+  signUp: (name, email, password) => logIn('/auth/signup', { name, email, password }),
+  logIn: (email, password) => logIn('/auth/login', { email, password }),
+  me: () => request('/auth/me'),
   areas: () => request('/areas'),
   summary: (name, bedrooms) => request(area(name) + '/summary?bedrooms=' + bedrooms),
   places: (name, point) =>

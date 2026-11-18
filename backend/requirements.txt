@@ -13,3 +13,5 @@ uvicorn==0.52.4
 pydantic==2.13.5
 # for looking up a society or landmark with OpenStreetMap (/locate)
 requests==2.34.2
+# for user accounts in Postgres online (a free Neon database); locally SQLite is used
+psycopg[binary]==3.3.4

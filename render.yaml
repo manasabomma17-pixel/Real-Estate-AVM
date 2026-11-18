@@ -9,3 +9,11 @@ services:
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeploy: true
+    envVars:
+      # signs the login tokens; Render makes a long random value once
+      - key: AUTH_SECRET
+        generateValue: true
+      # where user accounts are saved: paste the Neon Postgres connection
+      # string in the Render dashboard (it is a secret, so not in git)
+      - key: DATABASE_URL
+        sync: false

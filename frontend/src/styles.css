@@ -431,3 +431,35 @@ input[type='number']::-webkit-inner-spin-button { opacity: 0.5; }
 @media (max-width: 640px) {
   .field-grid-2 { grid-template-columns: 1fr; }
 }
+
+/* ----- login screen ----- */
+.auth { min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; background: var(--paper); }
+.auth-card {
+  width: 100%; max-width: 440px; display: grid; gap: 18px;
+  background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius-sheet); padding: 32px;
+}
+.auth-brand { display: flex; align-items: center; gap: 10px; font: 700 18px var(--display); }
+.auth-brand svg { width: 30px; height: 30px; fill: none; stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.auth-brand .brand-flag { fill: var(--gold); stroke: none; }
+.auth-card h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+.auth-card .lede { font-size: 17px; margin-top: -10px; }
+.auth-switch { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; }
+.auth-switch button { border: 0; background: none; border-radius: 999px; padding: 9px; font-weight: 700; color: var(--ink-soft); cursor: pointer; }
+.auth-switch button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+.auth-form { display: grid; gap: 16px; }
+.show-password {
+  border: 1.5px solid var(--line); border-left: 0; border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--paper); color: var(--ink); padding: 0 14px; font-weight: 700; font-size: 14px; cursor: pointer;
+}
+.auth-foot { text-align: center; color: var(--ink-soft); font-size: 15px; }
+@media (max-width: 480px) { .auth-card { padding: 22px; } }
+
+/* who is logged in, in the sidebar */
+.account { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(255, 255, 255, 0.12); margin-top: auto; }
+.account-name { font-weight: 700; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-logout { border: 1px solid rgba(255, 255, 255, 0.35); background: none; color: #d5ddd6; border-radius: 999px; padding: 5px 12px; font-size: 13.5px; cursor: pointer; }
+.account-logout:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.account + .sidebar-note { margin-top: 0; }
+@media (max-width: 900px) {
+  .account { margin-top: 0; padding: 6px 0 0; border-top: 0; }
+}
