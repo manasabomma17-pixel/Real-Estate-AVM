@@ -13,7 +13,7 @@ An **Automated Valuation Model (AVM)** for Bangalore flats, built as a simple **
 ![SHAP](https://img.shields.io/badge/Explainability-SHAP-8E44AD)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/Website-React%2019-61DAFB?logo=react&logoColor=black)
-![Tests](https://img.shields.io/badge/tests-73%20passing-2EA44F)
+![Tests](https://img.shields.io/badge/tests-99%20passing-2EA44F)
 
 ---
 
@@ -42,13 +42,13 @@ An **Automated Valuation Model (AVM)** for Bangalore flats, built as a simple **
 
 | | Property only | + Location | Change |
 |---|:---:|:---:|:---:|
-| XGBoost RMSE (Lakhs) | 58.95 | **48.28** | **18% lower** |
-| XGBoost R² | 0.600 | **0.732** | +0.13 |
+| XGBoost RMSE (Lakhs) | 58.95 | **47.71** | **19.1% lower** |
+| XGBoost R² | 0.600 | **0.738** | +0.14 |
 
 - 📉 **Without location, every model loses** to a simple *area rate × size* rule of thumb (baseline RMSE 54.82).
-- 📍 **With location, error drops by 18%**, and the tree models clearly beat the baseline.
-- 🏘️ **It is the area that matters, not the nearest amenity.** SHAP shows size has the largest effect, then the area's price level. Property features make up **69.5%** of the price effect and location **30.5%**.
-- 🎯 **Final tuned model:** 23.7% average error, R² 0.752, and **56.7% of estimates within 20%** of the real price on 2,255 unseen listings.
+- 📍 **With location, error drops by 19.1%**, and the tree models clearly beat the baseline.
+- 🏘️ **It is the area that matters, not the nearest amenity.** SHAP shows size has the largest effect, then the area's price level. Property features make up **69.3%** of the price effect and location **30.7%**. Distance to the nearest metro adds a little (0.98 L average effect).
+- 🎯 **Final tuned model:** 23.7% average error, R² 0.751, and **56.8% of estimates within 20%** of the real price on 2,255 unseen listings.
 
 ---
 
@@ -60,16 +60,19 @@ Every word on the site is short and simple, so anyone can use it. Details are on
 |---|---|
 | **Check price** | Paste an ad (or type the details), then get a big clear answer: *Price is too high / fair / low*. A **Cheap / Fair / Costly** bar shows the fair range and the seller's price. Tips say what to offer. **Why this price?** opens a SHAP waterfall. Optional building age and a Lakhs/Crore switch |
 | **Compare** | Price per sqft of similar flats, with our price and the seller's price marked |
+| **Two flats** | Two flats side by side: our price, range and price per sqft for each, and which one is the better deal |
 | **Places nearby** | The 5 closest schools, hospitals and bus/metro/train stops on a map, from the area centre or from a society name or Google Maps link |
 | **Other areas** | The 10 closest areas and how much cheaper or costlier they are |
 | **Before you buy** | A checklist: visit, RERA number, papers, seller, written agreement, lawyer |
 | **Loan EMI** | Monthly EMI, the bank's down-payment rule, and the best loan length for your salary |
+| **My checks** | Every price check you made (newest 50), saved to your account; open one to check it again, or delete it |
 
-**Example:** a 1,200 sqft, 2 BHK flat in Whitefield listed at **₹1.75 Cr** → our price today **₹1.57 Cr**, fair range ₹1.41–1.72 Cr → **"Price is too high"** (seller asks 12% more). With a 20-year-old building: about ₹1.48 Cr.
+**Example:** a 1,200 sqft, 2 BHK flat in Whitefield listed at **₹1.75 Cr** → our price today **₹1.57 Cr**, fair range ₹1.41–1.73 Cr → **"Price is too high"** (seller asks 12% more). With a 20-year-old building: about ₹1.48 Cr.
 
 **Smart checks**
 - **Today's prices:** the data is from 2017–19, so each estimate is multiplied by how much that area's prices have risen (published 2026 rates, Home Bazaar, Oct 2026; Whitefield ×2.49, city ×1.84). Small areas are pulled toward the city figure.
 - **Typo check:** a seller's price under 30% or over 3× our price is not judged; the site asks *"Did you mean ₹3 Cr?"*
+- **Metro nearby:** distance to the nearest Namma Metro station (91 stations from OpenStreetMap) is a model feature and a tip ("Metro nearby" within 1 km, "No metro close by" over 3 km).
 - **Building age:** the data has no age, so the standard valuer rule (60-year life, 10% salvage, applied only to the rebuild cost at ₹2,500/sqft) is shown separately as a rough guide.
 
 > We do not list flats for sale. Old records appear only as comparisons, clearly labelled.
@@ -82,16 +85,18 @@ Every word on the site is short and simple, so anyone can use it. Details are on
 OFFLINE (run once, results committed)
 Kaggle listings (13,320)
    │  clean sizes and sqft, geocode area names (Nominatim)
-   │  nearest school / hospital / transit (OpenStreetMap Overpass)
+   │  nearest school / hospital / transit (OpenStreetMap Overpass), nearest metro station
    │  5 nearest named places per area, 2026 price factors
    ▼
 Models: baseline → linear → Random Forest / XGBoost → tuned XGBoost → SHAP
 
 ONLINE
-React website (Vite)  ── fetch, JSON ──►  FastAPI backend
-                                            ├─ XGBoost model + exact SHAP values
-                                            └─ services: tips, area data, ad reader,
-                                               exact location, building age
+React website (Vite)  ── fetch, JSON, login token ──►  FastAPI backend
+                                                          ├─ XGBoost model + exact SHAP values
+                                                          ├─ services: tips, area data, ad reader,
+                                                          │  exact location, building age, price index
+                                                          └─ accounts, saved checks, sale reports
+                                                             (Neon Postgres) + emailed codes
 ```
 
 **Features used by the model**
@@ -99,7 +104,7 @@ React website (Vite)  ── fetch, JSON ──►  FastAPI backend
 | Group | Features |
 |---|---|
 | Property | bedrooms (`bhk`), bathrooms (`bath`), size (`total_sqft_clean`) |
-| Location | `lat`, `lon`, distance to the nearest school, hospital and transit stop, and `location_price` (the area's median price per sqft, from training rows only to avoid leakage) |
+| Location | `lat`, `lon`, distance to the nearest school, hospital, transit stop and metro station, and `location_price` (the area's median price per sqft, from training rows only to avoid leakage) |
 
 **Built with:** Python · pandas · NumPy · geopy · OpenStreetMap · scikit-learn · XGBoost · SHAP · FastAPI · Pydantic · React · Vite · Leaflet · pytest
 
@@ -131,6 +136,24 @@ bash run_checks.sh
 ```
 
 > The processed data and the trained model are committed, so the app works straight away. The older Streamlit version is kept in `streamlit_app/` (`bash start_streamlit.sh`).
+
+---
+
+## 🔄 Keeping prices up to date
+
+Two ways, both free and without copying any property website:
+
+1. **Every quarter, official house price indices.** Our locality rates bring prices up to October 2026. After that, Bengaluru's quarter-on-quarter change from the **NHB RESIDEX** or the **RBI House Price Index** is added as one line:
+
+   ```bash
+   python -m data_processing.update_price_index --quarter "Oct-Dec 2026" --change 2.4 \
+       --source "NHB RESIDEX Q3 FY2026-27" --released 2027-03-15
+   git add data/external/bengaluru_price_index.csv && git commit -m "Prices: Oct-Dec 2026" && git push
+   ```
+
+   Render redeploys and every price moves with it (`backend/services/market_index.py`: today's factor = area factor × each quarter's change). The site shows "Prices as of …".
+
+2. **Real sale prices from users.** Under each result, "Bought or sold this flat? Tell us the price" saves the final price (checked against our estimate, at most 10 a day per user) in the database. `python -m backend.models.export_sale_reports` exports them for retraining once there are enough; a new model is kept only if its measured error beats 23.7%.
 
 ---
 
@@ -169,6 +192,9 @@ Optional: set `ALLOWED_ORIGINS` on Render to the Vercel address. Both redeploy o
 | `POST` | `/auth/forgot` | Emails a 6-digit reset code (same answer whether or not the email has an account) |
 | `POST` | `/auth/reset` | Checks the code (15 minutes, 5 tries), saves the new password, logs in |
 | `GET` | `/auth/me` | The logged-in user |
+| `POST` | `/auth/verify`, `/auth/resend-code` | Confirm a new account's email with its 6-digit code; send a new code |
+| `GET` / `POST` / `DELETE` | `/checks`, `/checks/{id}` | The user's saved price checks ("My checks") |
+| `POST` | `/sale-reports` | Saves a real price a user bought or sold at (checked against our estimate), for retraining |
 
 <details>
 <summary><b>Example request and response</b></summary>
@@ -181,19 +207,19 @@ curl -X POST http://127.0.0.1:8000/predict \
 
 ```json
 {
-  "predicted_price": 62.81,
-  "today_price": 156.65,
-  "today_low": 119.51,
-  "today_high": 193.78,
+  "predicted_price": 62.92,
+  "today_price": 156.92,
+  "today_low": 119.74,
+  "today_high": 194.11,
   "market_factor": 2.494,
   "market_basis": "area",
   "verdict": "Looks overpriced",
-  "difference_percent": 11.7,
-  "base_price": 102.58,
+  "difference_percent": 11.5,
+  "base_price": 102.59,
   "factors": [
-    {"name": "Size, 1200 sqft", "effect": -26.35},
-    {"name": "Bathrooms, 2", "effect": -7.37},
-    {"name": "Area price level in Whitefield", "effect": -4.18}
+    {"name": "Size, 1200 sqft", "effect": -26.42},
+    {"name": "Bathrooms, 2", "effect": -7.53},
+    {"name": "Area price level in Whitefield", "effect": -4.59}
   ],
   "warnings": []
 }
@@ -245,11 +271,11 @@ All models use the **same 9,017 training rows** and are scored on the **same 2,2
 | Baseline | Area rate × size | 54.82 | 27.72 | 25.6% | 0.654 | — |
 | Random Forest | Property only | 59.17 | 29.73 | 28.4% | 0.597 | −7.9% |
 | XGBoost | Property only | 58.95 | 30.06 | 28.7% | 0.600 | −7.5% |
-| Random Forest | + position & amenities | 48.07 | 23.77 | 22.7% | 0.734 | +12.3% |
-| XGBoost | + position & amenities | 47.52 | 24.14 | 23.3% | 0.740 | +13.3% |
-| Random Forest | + area price level (all 9) | 49.41 | 23.61 | 22.0% | 0.719 | +9.9% |
-| XGBoost | + area price level (all 9) | 48.28 | 23.88 | 22.7% | 0.732 | +11.9% |
-| **Tuned XGBoost** (served) | all 9 | **46.41** | **23.96** | **23.7%** | **0.752** | **+15.3%** |
+| Random Forest | + position, amenities & metro | 47.51 | 23.62 | 22.6% | 0.740 | +13.3% |
+| XGBoost | + position, amenities & metro | 48.47 | 24.53 | 23.4% | 0.730 | +11.6% |
+| Random Forest | + area price level (all 10) | 49.08 | 23.44 | 21.9% | 0.723 | +10.5% |
+| XGBoost | + area price level (all 10) | 47.71 | 23.46 | 22.5% | 0.738 | +13.0% |
+| **Tuned XGBoost** (served) | all 10 | **46.57** | **23.94** | **23.7%** | **0.751** | **+15.0%** |
 
 Linear, Ridge and Lasso regression were also tested (`reports/baseline_and_linear_results.csv`). All did worse than the baseline, which confirms the relationship is non-linear.
 
@@ -262,12 +288,12 @@ Linear, Ridge and Lasso regression were also tested (`reports/baseline_and_linea
 
 | Feature | Average effect (Lakhs) |
 |---|---:|
-| Size | 39.55 |
+| Size | 39.64 |
 | Area price level | 18.28 |
-| Bathrooms | 11.01 |
-| Bedrooms | 3.71 |
-| Latitude / Longitude | 1.64 / 1.48 |
-| Distance to hospital / school / transit | 1.06 / 0.79 / 0.54 |
+| Bathrooms | 11.06 |
+| Bedrooms | 3.74 |
+| Longitude / Latitude | 1.40 / 1.26 |
+| Distance to hospital / metro / school / transit | 1.05 / 0.98 / 0.70 / 0.48 |
 
 ---
 
@@ -282,18 +308,19 @@ Real-Estate-AVM/
 │   └── processed/                    cleaned data, places, price factors (committed)
 ├── data_processing/                  cleaning, geocoding, amenities, names, factors
 ├── backend/
-│   ├── main.py                       FastAPI app (12 endpoints)
+│   ├── main.py                       FastAPI app (23 endpoints) + login check
 │   ├── schemas.py                    request / response validation
 │   ├── config.py                     loads config.yaml
-│   ├── services/                     area_data, suggestions, listing_parser,
-│   │                                 exact_location, building_age
+│   ├── services/                     area_data, suggestions, listing_parser, exact_location,
+│   │                                 building_age, market_index, auth, email_sender
 │   └── models/                       training, tuning, SHAP + trained_model.pkl
 ├── frontend/                         React website (Vite)
 │   └── src/                          App.jsx, api.js, format.js, styles.css,
-│                                     components/ (15 components)
+│                                     components/ (18 components)
 ├── streamlit_app/                    older Streamlit version (backup)
 ├── reports/                          results, charts, viva study guide, video script
-├── tests/                            73 pytest tests
+├── tests/                            99 pytest tests
+├── retrain.sh                        rebuilds the data and retrains the model end to end
 ├── start_app.sh                      starts the API + website
 ├── render.yaml                       backend deployment (Render)
 └── requirements.txt
@@ -303,11 +330,8 @@ Real-Estate-AVM/
 <summary><b>Re-run the models</b></summary>
 
 ```bash
-python -m backend.models.train_baseline_and_linear
-python -m backend.models.train_random_forest_xgboost
-python -m backend.models.tune_xgboost
-python -m backend.models.measure_error
-python -m backend.models.explain_model
+bash retrain.sh            # metro distances -> dataset -> all models -> tuning -> error -> SHAP -> tests
+python -m backend.models.show_example   # the Whitefield worked example
 ```
 </details>
 
@@ -319,9 +343,11 @@ python -m backend.models.explain_model
 python -m pytest -q
 ```
 
-There are **73 tests**, covering:
+There are **99 tests**, covering:
 - **Data preparation:** row counts, no missing values, a repeatable split, and no data leakage in the area price level.
 - **API:** valid predictions and ranges, SHAP factors adding up to the estimate, today's price using the market factor, the verdict comparing with today's price, 404 and 422 handling, ad reading, tips, and the building-age guide not changing the model's price.
+- **Accounts:** password hashing, tokens, sign-up and log-in, email confirmation codes, the 5-wrong-tries lock, password reset, "My checks" (kept per user, newest 50) and sale reports.
+- **Prices and metro:** quarterly index updates, metro distances for every area.
 - **Services:** area summaries, comparisons, nearby areas, nearest places, tip rules, ad parsing, coordinates and distances, and the depreciation rule (20 years = 30%).
 
 ---
@@ -332,10 +358,11 @@ There are **73 tests**, covering:
 |---|---|
 | Listing (asking) prices, not sale prices; 2026 rates are asking rates too | Use property registration data |
 | Location is at area level, not address level | Geocode full addresses where available |
-| One growth factor per area, no time series | Use dated transactions or a price index |
+| One growth factor per area, then a city-wide quarterly index | Use dated transactions per area |
 | Building age is a rule of thumb, not learned | Train on data that includes age, floor and condition |
 | 167 of 901 areas are missing amenity data (median-filled) | Re-query with retries, count amenities nearby |
-| About 24% average error | Add floor, area type and metro distance as features |
+| About 24% average error | Add floor and area type; retrain on users' reported sale prices |
+| Metro stations are today's network, listings are 2017–19 | Use station opening dates |
 
 ---
 

@@ -7,15 +7,19 @@ import NearbyAreas from './components/NearbyAreas.jsx'
 import PlacesPage from './components/PlacesPage.jsx'
 import ChecklistPage from './components/ChecklistPage.jsx'
 import EmiPage from './components/EmiPage.jsx'
+import MyChecks from './components/MyChecks.jsx'
+import TwoFlats from './components/TwoFlats.jsx'
 
 // each page with a small line icon for the sidebar
 const PAGES = [
   { id: 'check', label: 'Check price', icon: 'M4 11l8-7 8 7v9h-5v-6H9v6H4z' },
   { id: 'compare', label: 'Compare', icon: 'M5 20V10M10 20V4M15 20v-7M20 20V8' },
+  { id: 'twoflats', label: 'Two flats', icon: 'M3 20V9l5-4 5 4v11zM13 20v-8l4-3 4 3v8M6 20v-4h4v4' },
   { id: 'places', label: 'Places nearby', icon: 'M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 100-5 2.5 2.5 0 000 5z' },
   { id: 'nearby', label: 'Other areas', icon: 'M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14' },
   { id: 'checklist', label: 'Before you buy', icon: 'M9 11l2 2 4-4M5 4h14v16H5z' },
   { id: 'emi', label: 'Loan EMI', icon: 'M4 6h16v12H4zM4 10h16M8 15h3' },
+  { id: 'mychecks', label: 'My checks', icon: 'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z' },
 ]
 
 // the page is kept in the address (#compare), so the back button and
@@ -122,6 +126,8 @@ function MainApp({ user, onLogOut }) {
         {page === 'nearby' && <NearbyAreas {...shared} />}
         {page === 'checklist' && <ChecklistPage {...shared} />}
         {page === 'emi' && <EmiPage {...shared} />}
+        {page === 'twoflats' && <TwoFlats {...shared} />}
+        {page === 'mychecks' && <MyChecks {...shared} />}
       </main>
     </div>
   )

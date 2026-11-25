@@ -103,6 +103,11 @@ export default function CheckPrice({ areas, flat, setFlat, exactPoint, setExactP
       }
       const advice = await api.advice({ ...(typo ? withoutAsking : priced), ...age }, point)
       setCheck({ flat: { ...priced, ...age }, result, suggestions: advice.suggestions, typo, age: advice.age })
+      // save it to "My checks"; a failure here should never block the result
+      api.saveCheck({
+        ...(typo ? withoutAsking : priced), ...age, today_price: result.today_price,
+        verdict: typo ? null : result.verdict, difference_percent: typo ? null : result.difference_percent,
+      }).catch(() => {})
       requestAnimationFrame(() => document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
     } catch (err) {
       setError(err.message)
@@ -260,6 +265,7 @@ export default function CheckPrice({ areas, flat, setFlat, exactPoint, setExactP
             <summary>Why this price?</summary>
             <PriceWaterfall result={result} />
           </details>
+          <SaleReportBox flat={check.flat} />
 
           <div className="result-footer">
             <button type="button" className="button button-quiet" onClick={() => go('compare')}>
@@ -381,6 +387,7 @@ function Verdict({ flat, result }) {
 function EstimateFacts({ flat, result, summary }) {
   const typical = summary?.area === flat.location ? summary.typical_bhk_price_today : null
   return (
+    <>
     <dl className="facts facts-wide">
       <div>
         <dt>Our price</dt>
@@ -397,6 +404,68 @@ function EstimateFacts({ flat, result, summary }) {
         </div>
       )}
     </dl>
+    {result.prices_updated_to && (
+      <p className="hint facts-note">Prices as of {result.prices_updated_to}.</p>
+    )}
+    </>
+  )
+}
+
+// Users who really bought or sold a flat can tell us the final price. These
+// real prices are saved to retrain the model on new data later.
+function SaleReportBox({ flat }) {
+  const [kind, setKind] = useState('bought')
+  const [unit, setUnit] = useState('L')
+  const [text, setText] = useState('')
+  const [state, setState] = useState(null) // null, 'sending', { ok, text }
+  const lakhs = Number(text) > 0 ? Number(text) * (unit === 'Cr' ? 100 : 1) : 0
+
+  async function send(event) {
+    event.preventDefault()
+    setState('sending')
+    try {
+      const body = await api.reportSale({
+        location: flat.location, size_sqft: flat.size_sqft, bedrooms: flat.bedrooms,
+        bathrooms: flat.bathrooms, price_lakhs: lakhs, kind,
+      })
+      setState({ ok: true, text: body.message })
+      setText('')
+    } catch (err) {
+      setState({ ok: false, text: err.message })
+    }
+  }
+
+  return (
+    <details className="more-box">
+      <summary>Bought or sold this flat? Tell us the price</summary>
+      <form className="report-form" onSubmit={send}>
+        <p className="hint">Real prices help keep our prices up to date. We save only the flat details and the price.</p>
+        <div className="unit-switch" role="group" aria-label="Did you buy or sell?">
+          {[['bought', 'I bought'], ['sold', 'I sold']].map(([id, label]) => (
+            <button key={id} type="button" aria-pressed={kind === id} onClick={() => setKind(id)}>{label}</button>
+          ))}
+        </div>
+        <div className="field">
+          <label htmlFor="report-price">Final price</label>
+          <div className="input-unit">
+            <input id="report-price" type="number" inputMode="decimal" min={0} step="any" required value={text}
+              placeholder={unit === 'Cr' ? 'e.g. 1.6' : 'e.g. 160'} onChange={(e) => setText(e.target.value)} />
+            <div className="unit-switch" role="group" aria-label="Unit of the final price">
+              {[['L', 'Lakhs'], ['Cr', 'Crore']].map(([id, label]) => (
+                <button key={id} type="button" aria-pressed={unit === id} onClick={() => setUnit(id)}>{label}</button>
+              ))}
+            </div>
+          </div>
+          {lakhs > 0 && <p className="hint">= {money(lakhs, 2)}</p>}
+        </div>
+        <button className="button button-quiet" type="submit" disabled={!lakhs || state === 'sending'}>
+          {state === 'sending' ? 'Sending…' : 'Send'}
+        </button>
+        {state && state !== 'sending' && (
+          <div className={'notice ' + (state.ok ? 'notice-good' : 'notice-bad')} role="status">{state.text}</div>
+        )}
+      </form>
+    </details>
   )
 }
 

@@ -216,6 +216,17 @@ def build_suggestions(request, result, data, location_info, nearby_estimates=Non
                 text += " Nearest: " + "; ".join(names) + "."
             suggestions.append(("good", "Good for daily needs", text))
 
+    # 5b. metro: one of the first things Bangalore buyers ask about
+    if location in location_info.index and "dist_to_metro_km" in location_info.columns:
+        metro = location_info.loc[location, "dist_to_metro_km"]
+        if metro == metro:  # not missing
+            if metro <= 1:
+                suggestions.append(("good", "Metro nearby",
+                                    "A metro station is " + distance_text(metro) + " away."))
+            elif metro > 3:
+                suggestions.append(("info", "No metro close by",
+                                    "The nearest metro station is " + distance_text(metro) + " away."))
+
     # 6. what the local market looks like
     if len(area_rows) >= MIN_LISTINGS:
         ready = (area_rows["availability"].astype(str).str.strip() == "Ready To Move").mean() * 100

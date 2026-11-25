@@ -139,3 +139,76 @@ def test_reset_email_text():
     subject, text, html = reset_email("Manasa Bomma", "123456")
     assert "123456" in subject and "123456" in text and "123456" in html
     assert text.startswith("Hi Manasa,")
+
+
+# ----- login safety -----
+
+def test_five_wrong_passwords_lock_the_email(store):
+    auth.sign_up(store, "Manasa", "m@example.com", "rightpass1")
+    for i in range(auth.LOGIN_MAX_FAILS):
+        with pytest.raises(auth.AuthError):
+            auth.log_in(store, "m@example.com", "wrongpass", now=1000 + i)
+    with pytest.raises(auth.AuthError) as locked:
+        auth.log_in(store, "m@example.com", "rightpass1", now=1010)   # even the right one waits
+    assert locked.value.status == 429
+    user, token = auth.log_in(store, "m@example.com", "rightpass1", now=1000 + 16 * 60)  # after 15 minutes
+    assert token
+
+
+def test_right_password_clears_the_count(store):
+    auth.sign_up(store, "Manasa", "m@example.com", "rightpass1")
+    for i in range(auth.LOGIN_MAX_FAILS - 1):
+        with pytest.raises(auth.AuthError):
+            auth.log_in(store, "m@example.com", "wrongpass", now=1000 + i)
+    auth.log_in(store, "m@example.com", "rightpass1", now=1010)
+    with pytest.raises(auth.AuthError) as wrong:
+        auth.log_in(store, "m@example.com", "wrongpass", now=1011)
+    assert wrong.value.status == 401   # counting starts again
+
+
+def test_new_account_confirms_email_with_a_code(store):
+    outbox = Outbox()
+    user, token = auth.sign_up(store, "Sherlyn", "s@example.com", "secret123", send=outbox, now=1000)
+    assert token is None and user["email"] == "s@example.com"
+    with pytest.raises(auth.AuthError) as not_yet:
+        auth.log_in(store, "s@example.com", "secret123", now=1001)
+    assert not_yet.value.status == 403
+    code = outbox.sent[0][2]
+    user, token = auth.verify_email(store, "s@example.com", code, now=1100)
+    assert auth.read_token(token)["email"] == "s@example.com"
+    assert auth.log_in(store, "s@example.com", "secret123", now=1200)[1]
+
+
+def test_wrong_confirmation_code_and_resend(store):
+    outbox = Outbox()
+    auth.sign_up(store, "Sherlyn", "s@example.com", "secret123", send=outbox, now=1000)
+    first = outbox.sent[0][2]
+    with pytest.raises(auth.AuthError):
+        auth.verify_email(store, "s@example.com", "000000" if first != "000000" else "111111", now=1010)
+    auth.resend_verification(store, "s@example.com", outbox, now=1100)   # after the 60 s wait
+    assert len(outbox.sent) == 2
+    auth.verify_email(store, "s@example.com", outbox.sent[1][2], now=1110)
+    auth.resend_verification(store, "s@example.com", outbox, now=1200)   # already confirmed: nothing sent
+    assert len(outbox.sent) == 2
+
+
+def test_old_accounts_count_as_confirmed(store):
+    # accounts made without the email step (or before it existed) log in normally
+    auth.sign_up(store, "Old", "old@example.com", "secret123")
+    assert store.find("old@example.com")["verified"]
+
+
+# ----- my checks -----
+
+def test_checks_are_saved_listed_and_deleted_per_user(store):
+    for i in range(auth.MAX_CHECKS + 3):
+        store.add_check("1", {"location": "Whitefield", "today_price": 150 + i}, now=1000 + i)
+    store.add_check("2", {"location": "Jayanagar", "today_price": 99}, now=5000)
+    mine = store.list_checks("1")
+    assert len(mine) == auth.MAX_CHECKS                     # only the newest are kept
+    assert mine[0]["today_price"] == 150 + auth.MAX_CHECKS + 2  # newest first
+    store.delete_check("2", mine[0]["id"])                  # someone else cannot delete it
+    assert len(store.list_checks("1")) == auth.MAX_CHECKS
+    store.delete_check("1", mine[0]["id"])
+    assert len(store.list_checks("1")) == auth.MAX_CHECKS - 1
+    assert store.list_checks("2")[0]["location"] == "Jayanagar"

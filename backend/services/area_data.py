@@ -11,6 +11,7 @@ without the model or a running server.
 import pandas as pd
 
 from backend.config import PROJECT_ROOT
+from backend.services import market_index
 from backend.services.exact_location import distances_km, nearest_places
 from backend.services.suggestions import MIN_LISTINGS, clean_name
 
@@ -67,9 +68,9 @@ def market_factor(area):
     """(factor, basis): multiply 2017-19 prices by the factor for today's level.
     basis is 'area' when the area has its own published rate, else 'city'"""
     if area in AREA_FACTORS:
-        return float(AREA_FACTORS[area]), "area"
+        return float(AREA_FACTORS[area]) * market_index.MULTIPLIER, "area"
     if CITY_FACTOR != 1.0:
-        return CITY_FACTOR, "city"
+        return CITY_FACTOR * market_index.MULTIPLIER, "city"
     return 1.0, "none"
 
 
@@ -158,7 +159,7 @@ def comparison(area, bedrooms):
     if len(group) < MIN_LISTINGS:
         group = listings[listings["bhk"] == bedrooms]
         scope = "city_bhk"
-        factor, basis = CITY_FACTOR, "city"
+        factor, basis = CITY_FACTOR * market_index.MULTIPLIER, "city"
 
     rates = (group["rate"] * factor).round(-1)
     result = {

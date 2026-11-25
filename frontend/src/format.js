@@ -24,3 +24,16 @@ export function signed(value, digits = 1) {
   const text = Math.abs(value).toFixed(digits)
   return (value >= 0 ? '+' : '−') + text
 }
+
+// the API's verdict in short, plain words, and its colour on the page
+export const VERDICT_WORDS = {
+  'Looks overpriced': 'Too high',
+  'Looks fairly priced': 'Fair',
+  'Looks underpriced': 'Low',
+}
+export const VERDICT_KIND = { 'Looks overpriced': 'bad', 'Looks fairly priced': 'good', 'Looks underpriced': 'warn' }
+
+// 1795158881 -> "24 Nov 2026"
+export function shortDate(seconds) {
+  return new Date(seconds * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}

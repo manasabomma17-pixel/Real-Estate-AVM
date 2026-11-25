@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -47,6 +49,7 @@ class PredictionResponse(BaseModel):
     market_factor: float = 1.0
     market_basis: str = "none"       # "area", "city" or "none"
     market_source: str | None = None
+    prices_updated_to: str | None = None   # e.g. "October 2026" or the latest index quarter
 
 
 # ----- requests for the helper endpoints the React app uses -----
@@ -93,3 +96,29 @@ class ResetRequest(BaseModel):
     email: str = Field(max_length=200)
     code: str = Field(max_length=12)
     password: str = Field(max_length=200)
+
+
+class SaleReport(PredictionRequest):
+    # a price the user really paid or got, for retraining the model later
+    asking_price: None = None
+    price_lakhs: float = Field(gt=0, le=100000)
+    kind: Literal["bought", "sold"]
+
+
+class SavedCheck(BaseModel):
+    # one price check for "My checks": what was asked and what we answered
+    location: str = Field(min_length=1, max_length=120)
+    size_sqft: float = Field(gt=0, le=100000)
+    bedrooms: int = Field(ge=1, le=20)
+    bathrooms: float = Field(ge=0, le=20)
+    asking_price: float | None = Field(default=None, gt=0)
+    building_age: int | None = Field(default=None, ge=0, le=100)
+    under_construction: bool = False
+    today_price: float = Field(gt=0)
+    verdict: str | None = Field(default=None, max_length=40)
+    difference_percent: float | None = None
+
+
+class VerifyRequest(BaseModel):
+    email: str = Field(max_length=200)
+    code: str = Field(max_length=12)

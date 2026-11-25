@@ -22,7 +22,7 @@ outlier_trim:
 
 features:
   property: ["bhk", "bath", "total_sqft_clean"]
-  location: ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "location_price"]
+  location: ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "dist_to_metro_km", "location_price"]
 
 model:
   type: "xgboost"

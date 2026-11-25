@@ -18,7 +18,8 @@ RANDOM_SEED = 42
 TEST_SIZE = 0.2
 
 PROPERTY_FEATURES = ["bhk", "bath", "balcony", "total_sqft_clean"]
-LOCATION_FEATURES = ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]
+LOCATION_FEATURES = ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km",
+                     "dist_to_metro_km"]
 TARGET = "price"
 
 
@@ -29,7 +30,7 @@ def load_data() -> pd.DataFrame:
         if col in df.columns:
             df[col] = df[col].fillna(0)
 
-    for col in ["dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]:
+    for col in ["dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "dist_to_metro_km"]:
         if col in df.columns:
             df[col] = df[col].fillna(df[col].median())
 

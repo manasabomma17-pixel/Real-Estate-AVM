@@ -226,3 +226,5 @@ reports/run_log.txt
 
 # local user accounts (online they live in Postgres)
 data/users.db
+# users' reported sale prices (personal data, exported from the database)
+data/processed/user_sale_reports.csv

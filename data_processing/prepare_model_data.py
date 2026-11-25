@@ -28,14 +28,14 @@ PROPERTY_FEATURES = ["bhk", "bath", "total_sqft_clean"]
 # where the property is, what is near it, and how pricey the area is
 LOCATION_FEATURES = [
     "lat", "lon",
-    "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km",
+    "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "dist_to_metro_km",
     "location_price",
 ]
 
 # the exact order the saved model expects its columns in
 ALL_FEATURES = PROPERTY_FEATURES + LOCATION_FEATURES
 
-DISTANCE_COLUMNS = ["dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"]
+DISTANCE_COLUMNS = ["dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km", "dist_to_metro_km"]
 
 
 def load_clean_data(path=DATA_PATH):

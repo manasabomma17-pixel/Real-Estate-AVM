@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { api } from '../api.js'
 
 // The first screen: log in, create an account, or reset a forgotten password.
-// Modes: 'login', 'signup', 'forgot' (ask for the email) and 'reset' (enter the
-// emailed code and a new password). Short words, one form at a time.
+// Modes: 'login', 'signup', 'verify' (enter the code that confirms a new
+// account's email), 'forgot' (ask for the email) and 'reset' (enter the emailed
+// code and a new password). Short words, one form at a time.
 const HEADINGS = {
   login: ['Welcome back', 'Check if a flat’s price in Bangalore is fair.'],
   signup: ['Create your account', 'Check if a flat’s price in Bangalore is fair.'],
   forgot: ['Reset your password', 'We will email you a 6-digit code.'],
   reset: ['Enter the code', 'Check your email. The code works for 15 minutes.'],
+  verify: ['Confirm your email', 'Enter the 6-digit code we emailed you.'],
 }
 
 export default function AuthPage({ onLoggedIn }) {
@@ -22,7 +24,7 @@ export default function AuthPage({ onLoggedIn }) {
   const [error, setError] = useState(null)
   const [info, setInfo] = useState(null)
   const signingUp = mode === 'signup'
-  const resetting = mode === 'forgot' || mode === 'reset'
+  const resetting = mode === 'forgot' || mode === 'reset' || mode === 'verify'
   const newPassword = signingUp || mode === 'reset'
 
   const switchTo = (next) => {
@@ -52,10 +54,25 @@ export default function AuthPage({ onLoggedIn }) {
       const user =
         mode === 'signup' ? await api.signUp(name, email, password)
         : mode === 'reset' ? await api.resetPassword(email, code, password)
+        : mode === 'verify' ? await api.verifyEmail(email, code)
         : await api.logIn(email, password)
+      if (user?.needs_verification) {
+        setCode('')
+        switchTo('verify')
+        setInfo('We sent a 6-digit code to ' + user.email + '.')
+        setBusy(false)
+        return
+      }
       onLoggedIn(user)
     } catch (err) {
-      setError(err.message)
+      // an account that has not confirmed its email yet
+      if (err.status === 403 && mode === 'login') {
+        setCode('')
+        switchTo('verify')
+        setInfo('Please confirm your email first. Enter the code we sent, or send a new one.')
+      } else {
+        setError(err.message)
+      }
       setBusy(false)
     }
   }
@@ -64,16 +81,23 @@ export default function AuthPage({ onLoggedIn }) {
     setError(null)
     setBusy(true)
     try {
-      await sendCode()
+      if (mode === 'verify') {
+        await api.resendCode(email)
+        setInfo('If this email is waiting for a code, we sent a new one.')
+      } else {
+        await sendCode()
+      }
     } catch (err) {
       setError(err.message)
     }
     setBusy(false)
   }
 
-  const wrongLogin = mode === 'login' && error && error.startsWith('Wrong email or password')
+  const wrongLogin = mode === 'login' && error
+    && (error.startsWith('Wrong email or password') || error.startsWith('Too many wrong tries'))
   const [heading, lede] = HEADINGS[mode]
-  const buttonText = { login: 'Log in', signup: 'Create account', forgot: 'Send code', reset: 'Save new password' }[mode]
+  const buttonText = { login: 'Log in', signup: 'Create account', forgot: 'Send code', reset: 'Save new password',
+    verify: 'Confirm email' }[mode]
 
   return (
     <div className="auth">
@@ -104,7 +128,7 @@ export default function AuthPage({ onLoggedIn }) {
             </div>
           )}
 
-          {mode !== 'reset' && (
+          {mode !== 'reset' && mode !== 'verify' && (
             <div className="field">
               <label htmlFor="auth-email">Email</label>
               <input id="auth-email" type="email" value={email} autoComplete="email" required
@@ -114,7 +138,7 @@ export default function AuthPage({ onLoggedIn }) {
 
           {info && <div className="notice notice-good" role="status">{info}</div>}
 
-          {mode === 'reset' && (
+          {(mode === 'reset' || mode === 'verify') && (
             <div className="field">
               <label htmlFor="auth-code">6-digit code</label>
               <input id="auth-code" className="code-input" value={code} required inputMode="numeric"
@@ -123,7 +147,7 @@ export default function AuthPage({ onLoggedIn }) {
             </div>
           )}
 
-          {mode !== 'forgot' && (
+          {mode !== 'forgot' && mode !== 'verify' && (
             <div className="field">
               <div className="label-row">
                 <label htmlFor="auth-password">{mode === 'reset' ? 'New password' : 'Password'}</label>
@@ -166,7 +190,7 @@ export default function AuthPage({ onLoggedIn }) {
           {busy && <p className="hint" role="status">The first time can take up to 1 minute while the server starts.</p>}
         </form>
 
-        {mode === 'reset' && (
+        {(mode === 'reset' || mode === 'verify') && (
           <p className="auth-foot">
             No email? Check spam, or{' '}
             <button type="button" className="link-button" disabled={busy} onClick={sendAgain}>send a new code</button>

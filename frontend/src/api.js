@@ -93,6 +93,8 @@ const area = (name) => '/areas/' + encodeURIComponent(name)
 
 async function logIn(path, data) {
   const body = await post(path, data)
+  // sign-up with email confirmation: no token yet, the user must enter a code
+  if (!body.token) return body
   currentToken = body.token
   saveLogin({ token: body.token, user: body.user })
   return body.user
@@ -102,6 +104,8 @@ export const api = {
   signUp: (name, email, password) => logIn('/auth/signup', { name, email, password }),
   logIn: (email, password) => logIn('/auth/login', { email, password }),
   forgotPassword: (email) => post('/auth/forgot', { email }),
+  verifyEmail: (email, code) => logIn('/auth/verify', { email, code }),
+  resendCode: (email) => post('/auth/resend-code', { email }),
   resetPassword: (email, code, password) => logIn('/auth/reset', { email, code, password }),
   me: () => request('/auth/me'),
   areas: () => request('/areas'),
@@ -113,5 +117,9 @@ export const api = {
   parseListing: (text) => post('/parse-listing', { text }),
   locate: (query, areaName) => post('/locate', { query, area: areaName }),
   predict: (flat) => post('/predict', flat),
+  reportSale: (report) => post('/sale-reports', report),
+  saveCheck: (check) => post('/checks', check),
+  myChecks: () => request('/checks'),
+  deleteCheck: (id) => request('/checks/' + id, { method: 'DELETE' }),
   advice: (flat, point) => post('/advice', { ...flat, exact_lat: point?.lat, exact_lon: point?.lon }),
 }

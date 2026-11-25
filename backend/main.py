@@ -9,6 +9,7 @@ Interactive docs:             http://127.0.0.1:8000/docs
 import os
 
 import joblib
+import numpy as np
 import pandas as pd
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException, Request
@@ -21,6 +22,9 @@ from backend.schemas import (
     ForgotRequest,
     LoginRequest,
     ResetRequest,
+    SaleReport,
+    SavedCheck,
+    VerifyRequest,
     SignupRequest,
     ListingText,
     PlaceQuery,
@@ -28,7 +32,7 @@ from backend.schemas import (
     PredictionResponse,
     PriceFactor,
 )
-from backend.services import area_data, auth, email_sender
+from backend.services import area_data, auth, email_sender, market_index
 from backend.services.building_age import age_adjustment, age_suggestions, find_building_age
 from backend.services.exact_location import geocode, parse_coordinates
 from backend.services.listing_parser import is_link, parse_listing
@@ -44,7 +48,7 @@ app = FastAPI(
 # (AUTH_REQUIRED=false turns this off, for example to try /docs quickly)
 AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() != "false"
 PUBLIC_PATHS = {"/health", "/auth/signup", "/auth/login", "/auth/forgot", "/auth/reset",
-                "/docs", "/redoc", "/openapi.json"}
+                "/auth/verify", "/auth/resend-code", "/docs", "/redoc", "/openapi.json"}
 user_store = auth.UserStore()
 
 
@@ -69,19 +73,21 @@ allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in allowed_origins],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
 config = load_config()
 app_settings = config["app"]
 
-MODEL_VERSION = "xgboost_tuned_v1"
-
-# the column order the model was trained with. it must match exactly
-FEATURES = config["features"]["property"] + config["features"]["location"]
+MODEL_VERSION = "xgboost_tuned_v2"  # v2: adds distance to the nearest metro
 
 model = joblib.load(PROJECT_ROOT / "backend" / "models" / "trained_model.pkl")
+
+# the column order the model was trained with. it must match exactly, so it is
+# read from the saved model itself (the config lists the same columns)
+FEATURES = (list(model.feature_names_in_) if hasattr(model, "feature_names_in_")
+            else config["features"]["property"] + config["features"]["location"])
 
 location_lookup = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "location_lookup.csv")
 location_lookup = location_lookup.set_index("location")
@@ -138,11 +144,13 @@ AREA_FACTORS, CITY_FACTOR = load_market_factors()
 
 
 def market_factor(location):
-    """how much prices in this area have risen since our data: (factor, basis)"""
+    """how much prices in this area have risen since our data: (factor, basis).
+    the area factor (up to October 2026) is multiplied by the official
+    Bengaluru index changes published since then (market_index.py)"""
     if location in AREA_FACTORS:
-        return float(AREA_FACTORS[location]), "area"
+        return float(AREA_FACTORS[location]) * market_index.MULTIPLIER, "area"
     if CITY_FACTOR != 1.0:
-        return CITY_FACTOR, "city"
+        return CITY_FACTOR * market_index.MULTIPLIER, "city"
     return 1.0, "none"
 
 
@@ -166,6 +174,7 @@ def build_features(request, location_row):
         "dist_to_school_km": location_row["dist_to_school_km"],
         "dist_to_hospital_km": location_row["dist_to_hospital_km"],
         "dist_to_transit_km": location_row["dist_to_transit_km"],
+        "dist_to_metro_km": location_row.get("dist_to_metro_km", np.nan),
         "location_price": location_row["location_price"],
     }
     return pd.DataFrame([row])[FEATURES]
@@ -181,6 +190,7 @@ def _base_price():
         "dist_to_school_km": area["dist_to_school_km"],
         "dist_to_hospital_km": area["dist_to_hospital_km"],
         "dist_to_transit_km": area["dist_to_transit_km"],
+        "dist_to_metro_km": area.get("dist_to_metro_km", np.nan),
         "location_price": area["location_price"],
     }])[FEATURES]
     return round(shap_contributions(sample)[1], 2)
@@ -216,6 +226,9 @@ def build_factors(features, shap_values, location_name):
         PriceFactor(name="Nearest transit, " + km_text(row["dist_to_transit_km"]),
                     effect=effect("dist_to_transit_km")),
     ]
+    if "dist_to_metro_km" in effects:
+        factors.append(PriceFactor(name="Nearest metro, " + km_text(row["dist_to_metro_km"]),
+                                   effect=effect("dist_to_metro_km")))
 
     # biggest effect first, whether it pushed the price up or down
     factors.sort(key=lambda f: abs(f.effect), reverse=True)
@@ -275,6 +288,9 @@ def model_info():
         "city_market_factor": CITY_FACTOR,
         "areas_with_own_factor": len(AREA_FACTORS),
         "market_source": MARKET_SOURCE,
+        "prices_updated_to": market_index.UPDATED_TO,
+        "index_multiplier": round(market_index.MULTIPLIER, 4),
+        "index_updates": market_index.UPDATES,
     }
 
 
@@ -337,6 +353,7 @@ def predict(request: PredictionRequest):
         market_factor=round(factor, 3),
         market_basis=basis,
         market_source=MARKET_SOURCE if basis != "none" else None,
+        prices_updated_to=market_index.UPDATED_TO if basis != "none" else None,
     )
 
 
@@ -479,12 +496,36 @@ def place_text(group, place):
 
 @app.post("/auth/signup")
 def sign_up(body: SignupRequest):
-    """creates an account and logs the user in"""
+    """creates an account. when email is set up, a 6-digit code is emailed
+    first and the user is logged in only after /auth/verify"""
+    send = email_sender.send_verify_code if email_sender.email_configured() else None
     try:
-        user, token = auth.sign_up(user_store, body.name, body.email, body.password)
+        user, token = auth.sign_up(user_store, body.name, body.email, body.password, send)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    if token is None:
+        return {"needs_verification": True, "email": user["email"]}
+    return {"token": token, "user": user}
+
+
+@app.post("/auth/verify")
+def verify_email(body: VerifyRequest):
+    """confirms the email with the emailed code and logs the user in"""
+    try:
+        user, token = auth.verify_email(user_store, body.email, body.code)
     except auth.AuthError as error:
         raise HTTPException(status_code=error.status, detail=error.message)
     return {"token": token, "user": user}
+
+
+@app.post("/auth/resend-code")
+def resend_code(body: ForgotRequest):
+    """sends a new email-confirmation code (same reply for any email)"""
+    try:
+        auth.resend_verification(user_store, body.email, email_sender.send_verify_code)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    return {"message": "If this email is waiting for a code, we sent a new one."}
 
 
 @app.post("/auth/login")
@@ -516,6 +557,58 @@ def reset_password(body: ResetRequest):
     except auth.AuthError as error:
         raise HTTPException(status_code=error.status, detail=error.message)
     return {"token": token, "user": user}
+
+
+# ----- my checks: each user's past price checks -----
+
+def current_user(request):
+    user = getattr(request.state, "user", None) or auth.user_from_header(request.headers.get("authorization"))
+    if user is None:
+        raise HTTPException(status_code=401, detail="Please log in again.")
+    return user
+
+
+@app.post("/checks")
+def save_check(body: SavedCheck, request: Request):
+    """saves a price check to the user's history (the newest 50 are kept)"""
+    user_store.add_check(current_user(request)["id"], body.model_dump())
+    return {"saved": True}
+
+
+@app.get("/checks")
+def my_checks(request: Request):
+    """the user's past price checks, newest first"""
+    return {"checks": user_store.list_checks(current_user(request)["id"])}
+
+
+@app.delete("/checks/{check_id}")
+def delete_check(check_id: int, request: Request):
+    """removes one check from the user's history"""
+    user_store.delete_check(current_user(request)["id"], check_id)
+    return {"deleted": True}
+
+
+# ----- real sale prices from users, to retrain the model on new data -----
+
+@app.post("/sale-reports")
+def report_sale(body: SaleReport, request: Request):
+    """saves a price a user really bought or sold at. checked against our
+    estimate so typos (Lakhs vs Crore) do not get into the training data"""
+    require_area(body.location)
+    user = getattr(request.state, "user", None) or auth.user_from_header(request.headers.get("authorization"))
+    if user is None:
+        raise HTTPException(status_code=401, detail="Please log in again.")
+    estimate = predict(PredictionRequest(location=body.location, size_sqft=body.size_sqft,
+                                         bedrooms=body.bedrooms, bathrooms=body.bathrooms)).today_price
+    if not (estimate * 0.3 <= body.price_lakhs <= estimate * 3):
+        raise HTTPException(status_code=422, detail=(
+            "This price is very far from our estimate. Please check Lakhs and Crore."))
+    try:
+        user_store.add_report(user["id"], body.location, body.size_sqft, body.bedrooms, body.bathrooms,
+                              body.price_lakhs, body.kind, estimate)
+    except auth.AuthError as error:
+        raise HTTPException(status_code=error.status, detail=error.message)
+    return {"message": "Thank you. This helps keep our prices up to date."}
 
 
 @app.get("/auth/me")

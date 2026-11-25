@@ -1,0 +1,902 @@
+location,dist_to_metro_km,nearest_metro
+1A Block Koramangala,2.2166,Suddaguntepalya
+1st Block BEL Layout,4.804,Peenya
+1st Block HBR Layout,1.5892,Nagawara (Proposed)
+1st Block HRBR Layout,2.3683,Baiyappanahalli
+1st Block Jayanagar,0.3472,Banashankari
+1st Block Koramangala,0.9417,HSR Layout (u/c)
+1st Phase JP Nagar,0.2064,N S Palya
+1st Stage Domlur,1.1697,Indiranagar
+1st Stage Indira Nagar,0.2476,Indiranagar
+2nd Block Bel Layout,4.9984,Peenya
+2nd Block Hrbr Layout,2.5801,Nagawara (Proposed)
+2nd Block Jayanagar,0.3005,South End Circle
+2nd Block Koramangala,0.9229,Agara Lake (u/c)
+2nd Phase JP Nagar,0.9125,Ragigudda
+2nd Phase Judicial Layout,0.6909,Thalaghattapura
+2nd Stage Arekere Mico Layout,0.8206,Bilekahalli IIM-B
+2nd Stage Nagarbhavi,1.2501,Pantharapalya - Nayandahalli
+"2nd phase jp nagar, jp nagar",0.5496,N S Palya
+3rd Block Banashankari,2.3126,Banashankari
+3rd Block HBR Layout,1.675,Nagawara (Proposed)
+3rd Block Hrbr Layout,1.9902,Nagawara (Proposed)
+3rd Block Jayanagar,0.5768,Jayanagar
+3rd Block Koramangala,2.1637,Central Silk Board
+3rd Phase JP Nagar,0.2064,N S Palya
+4th Block HBR Layout,1.1319,Nagawara (Proposed)
+4th Block Jayanagar,0.508,Jayanagar
+4th Block Koramangala,1.5337,HSR Layout (u/c)
+4th Phase JP Nagar,0.6317,N S Palya
+4th T block Jayanagar,1.1033,Suddaguntepalya
+5th Block Hbr Layout,0.6846,Nagawara (Proposed)
+5th Block Jayanagar,0.1991,Rashtreeya Vidyalaya Road
+5th Phase JP Nagar,1.5607,Jaya Prakash Nagar
+5th Stage BEML Layout,12.9097,Nagawara (Proposed)
+5th block Koramangala,1.8329,Suddaguntepalya
+6th Block Jayanagar,0.2483,Jayanagar
+6th Phase JP Nagar,0.0482,Jaya Prakash Nagar
+6th block Koramangala,2.3833,Central Silk Board
+7th Block Jayanagar,0.6877,Rashtreeya Vidyalaya Road
+7th Phase JP Nagar,0.5685,Ragigudda
+8th Block Jayanagar,0.3005,South End Circle
+8th Phase JP Nagar,0.5496,N S Palya
+8th block Koramangala,1.4514,HSR Layout (u/c)
+9th Block Jayanagar,0.6329,South End Circle
+9th Phase JP Nagar,0.7361,Jaya Prakash Nagar
+A Narayanapura,0.4398,Krishnarajapura
+AECS LAYOUT A-BLOCK Singasandra,0.8366,Singasandra
+AECS Layout,1.5232,Kundalahalli
+AGS Layout,3.0741,Rajarajeshwari Nagar
+AMS Layout,6.6758,Peenya
+Abbaiah Reddy Layout,2.3105,Singayyanapalya
+Abbigere,4.1189,Dasarahalli
+Abshot Layout,1.683,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Adarsh Nagar,2.12,Nagawara (Proposed)
+Adugodi,1.8513,Suddaguntepalya
+Agara Village,4.937,Silk Institute
+Agrahara Dasarahalli,1.1509,"Sri Balagangadharanatha Swamiji Station, Hosahalli"
+Air View Colony,3.5889,Indiranagar
+Akash Nagar,2.7079,Seetharampalya
+Akshaya Nagar,2.2626,Krishnarajapura
+Akshya Nagar,4.2469,Peenya
+Alfa Garden Layout,1.2247,Mahatma Gandhi Road
+Allalasandra,6.3675,Nagawara (Proposed)
+Alur,0.4959,Krishna Rajendra Market
+Ambalipura,2.5752,Agara Lake (u/c)
+Ambedkar Colony,1.843,Seetharampalya
+Ambedkar Nagar,0.8281,Hopefarm Channasandra
+Amrita Nagar,2.6076,Sandal Soap Factory
+Amruthahalli,3.7328,Nagawara (Proposed)
+Amruthnagar,3.3274,Nagawara (Proposed)
+Anand Nagar,3.3995,Nagawara (Proposed)
+Anand nagar,3.3995,Nagawara (Proposed)
+Anandapura,3.0451,Singayyanapalya
+Anantapura,9.8734,Peenya
+Anantapuram,9.4695,Nagawara (Proposed)
+Andrahalli,3.3689,Nagasandra
+Anekal,7.4207,Delta Electronics Bommasandra
+Anekal - Hosur Road,14.4231,Delta Electronics Bommasandra
+Anjana Nagar,2.9268,Nagawara (Proposed)
+Anjanapura,2.1109,Thalaghattapura
+Annaiah Reddy Layout,0.4549,Halasuru
+Annapurneshwari Nagar,0.5678,Halasuru
+Ardendale,3.5052,Whitefield (Kadugodi)
+Arehalli,3.1051,Doddakallasandra
+Arekempanahalli,1.6047,Lalbagh
+Arekere,0.7092,Hulimavu
+Arishinakunte,5.9239,Madavara
+Ashirvad Colony,0.6764,South End Circle
+Ashok Nagar,0.727,Mahatma Gandhi Road
+Ashraya Layout,0.6599,Seetharampalya
+Ashwath Nagar,2.3584,Seetharampalya
+Ashwathnagar,2.9838,Sandal Soap Factory
+Ashwini layout,2.6232,HSR Layout (u/c)
+Attibele,10.2179,Delta Electronics Bommasandra
+Attiguppe,0.0037,Attiguppe
+Attur Layout,8.2949,Peenya
+Austin Town,1.3197,Trinity
+Avalahalli,0.8016,Deepanjali Nagar
+Ayappa Nagar,2.8502,Benniganahalli
+B Channasandra,1.737,Benniganahalli
+B K Nagar,0.0967,Chickpete
+B Narayanapura,0.8058,Krishnarajapura
+BCC Layout,0.7301,Attiguppe
+BCMC Layout,0.6017,Vajarahalli
+BEL Layout,4.9984,Peenya
+BEL Road,2.6844,Goraguntepalya
+BEML Layout,1.8356,Kundalahalli
+BEML Layout 5th Stage,3.0259,Pattanagere
+BEML Layout 5th stage,3.0259,Pattanagere
+BHEL Layout,1.356,Pattanagere
+BTM 1st Stage,0.3723,BTM Layout
+BTM 2nd Stage,0.3327,Central Silk Board
+BTM Layout,0.3712,BTM Layout
+BTM Layout 2nd Stage 1st Phase,0.2875,BTM Layout
+Baba Nagar,0.8541,Halasuru
+Babusapalaya,3.1773,Nagawara (Proposed)
+Badrappa Layout,4.2241,Yeshwantpur
+Bagalur,3.6131,Halasuru
+Bagalur Main Road,10.7679,Nagawara (Proposed)
+Bahubali Nagar,2.0698,Goraguntepalya
+Balagere,4.3411,Nallurahalli
+Balaji Gardens Layout,1.749,Nagawara (Proposed)
+Banagiri Nagar,1.8307,Banashankari
+"Banasawadi,",2.6351,Baiyappanahalli
+Banashankari,2.3126,Banashankari
+Banashankari 2 nd Stage,2.9604,Thalaghattapura
+Banashankari 6th Stage,2.9028,Thalaghattapura
+"Banashankari 6th Stage ,Subramanyapura",3.0202,Thalaghattapura
+"Banashankari 6th stage , 2nd block",2.9028,Thalaghattapura
+Banashankari Stage I,2.9028,Thalaghattapura
+Banashankari Stage II,2.9028,Thalaghattapura
+Banashankari Stage V,2.9028,Thalaghattapura
+Banashankari Stage VI,2.9028,Thalaghattapura
+Banashankari stage 2,1.873,Banashankari
+Banaswadi,2.6029,Baiyappanahalli
+"Banaswadi,",2.6029,Baiyappanahalli
+Bande Nallasandra,5.0344,Delta Electronics Bommasandra
+Bandepalya,0.4662,Singasandra
+Banjara Layout,4.398,Nagawara (Proposed)
+Bank Avenue,3.3601,Benniganahalli
+Bank Of Baroda Colony,1.5038,Yelachenahalli
+Bannerghatta,2.5013,Suddaguntepalya
+Bannerghatta Road,1.4816,Suddaguntepalya
+Bapuji Nagar,0.5333,Deepanjali Nagar
+Basapura,0.9262,Hosa Road
+Basava Nagar,0.8109,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Basavanagara,0.7498,Challaghatta
+Basavanapura,1.9306,Garudacharpalya
+Basavangudi,0.7654,South End Circle
+Basavanna Nagar,0.9846,Hoodi
+Basaveshwara Nagar,1.4252,Rajajinagar
+Battarahalli,2.4893,Garudacharpalya
+Begur,2.28,Kalena Agrahara
+Begur Road,2.1686,Singasandra
+Belathur,1.3053,Pattandur Agrahara
+Belatur,0.3017,Whitefield (Kadugodi)
+Bellandur,4.5887,Agara Lake (u/c)
+"Bellandur,",4.5887,Agara Lake (u/c)
+"Beml layout, Rajarajeshwari nagar",1.8854,Rajarajeshwari Nagar
+Bendiganahalli,8.0769,Whitefield (Kadugodi)
+Benson Town,1.9383,Cubbon Park
+Bethel Nagar,1.9533,Hoodi
+Bettadasanapura,3.7551,Beratena Agrahara
+Bharat Nagar,1.6599,Sandal Soap Factory
+Bharathi Nagar,1.6377,Mahatma Gandhi Road
+Bharathnagar,6.1728,Jnanabharathi
+Bhattarahalli,3.7638,Garudacharpalya
+Bhuvaneshwari Nagar,0.6424,Magadi Road
+Bhuvaneswari Nagar,2.7962,Nagawara (Proposed)
+Bidadi,1.586,Hulimavu
+Bilal Nagar,0.4607,Jayadeva Hospital
+Bileshivale,5.1771,Nagawara (Proposed)
+Billamaranahalli,12.0977,Nagawara (Proposed)
+Billapura,11.1467,Delta Electronics Bommasandra
+Binnamangala,0.4104,Swami Vivekananda Road
+Bommanahalli,0.8805,Bommanahalli
+Bommasandra,0.3874,Delta Electronics Bommasandra
+Bommasandra Industrial Area,0.9841,Delta Electronics Bommasandra
+Bommenahalli,8.8162,Whitefield (Kadugodi)
+Brigade Road,0.9031,Mahatma Gandhi Road
+Brindavan Layout,2.2285,Hopefarm Channasandra
+Brindavan Nagar,0.2542,Mahatma Gandhi Road
+Brookefield,1.401,Kundalahalli
+Budigere,16.2465,Nagawara (Proposed)
+Bull Temple Road,0.8341,National College
+Byadarahalli,5.6203,Jnanabharathi
+Byappanahalli,0.1472,Baiyappanahalli
+Byatarayanapura,4.6725,Nagawara (Proposed)
+Byrasandra,0.1128,Jayanagar
+CMH Road,0.3431,Indiranagar
+CQAL Layout,5.0944,Nagawara (Proposed)
+CR Layout,1.7389,Hulimavu
+CV Raman Nagar,1.2178,Benniganahalli
+Cambridge  road,0.625,Halasuru
+Cambridge Layout,2.5705,Pattandur Agrahara
+Canara Bank Colony,1.062,Suddaguntepalya
+Canara Bank Layout,5.8242,Nagawara (Proposed)
+Carmelaram,6.8942,Agara Lake (u/c)
+Celebrity Paradise Layout,1.453,Electronic City
+Challaghatta,2.8616,Agara Lake (u/c)
+Chambenahalli,10.7629,Nallurahalli
+Chamrajpet,1.3015,Krishna Rajendra Market
+Chamundi Nagar,2.9129,Nagawara (Proposed)
+Chandapura,3.2443,Delta Electronics Bommasandra
+Chandra Layout,1.1744,Mysore Road
+Channasandra,0.0,Hopefarm Channasandra
+Channasandra Layout,0.387,Hopefarm Channasandra
+Chickpet,3.1723,Nallurahalli
+Chikka Banaswadi,1.6743,Baiyappanahalli
+Chikkaballapur,10.2319,Madavara
+Chikkabettahalli,6.7507,Peenya
+Chikkabidarakallu,0.0001,Chikkabidarakallu
+Chikkadunnasandra,9.9278,Delta Electronics Bommasandra
+Chikkagubbi,5.9669,Nagawara (Proposed)
+Chikkajala,14.0357,Nagawara (Proposed)
+Chikkakannalli,6.3632,Electronic City
+Chikkalasandra,2.8125,Jaya Prakash Nagar
+Chikkanahalli,0.8567,Bommanahalli
+Chikkasandra,10.5421,Nagawara (Proposed)
+Chikkathoguru,0.4885,Beratena Agrahara
+Chikku Lakshmaiah Layout,1.3499,Suddaguntepalya
+Chinnapanahalli,1.5698,Kundalahalli
+Chokkanahalli,4.7619,Nagawara (Proposed)
+Chokkasandra,0.3357,Dasarahalli
+Cholanayakanahalli,3.0308,Nagawara (Proposed)
+Choodasandra,3.5691,Hosa Road
+Chowdeshwari Layout,2.8236,Nagawara (Proposed)
+Church Street,1.4999,Swami Vivekananda Road
+Classic Paradise Layout,0.8982,Hosa Road
+Cleveland Town,2.1041,Cubbon Park
+Coconut Garden,1.577,Attiguppe
+Coffee Board Layout,2.2222,Nagawara (Proposed)
+Cooke Town,2.7992,Swami Vivekananda Road
+Cottonpet,0.7232,Chickpete
+Cox Town,1.8966,Halasuru
+Craig Park Layout,0.2227,Trinity
+Crimson Layout,0.2571,Seetharampalya
+Cubbon Road,0.5221,Mahatma Gandhi Road
+Cunningham Road,0.5558,Cubbon Park
+D Group Employees Layout,4.1607,Attiguppe
+D Souza Layout,1.1573,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+DUO Layout,1.3256,Hosa Road
+Dairy Circle,0.8585,Suddaguntepalya
+Dasanapura,12.3313,Delta Electronics Bommasandra
+Dasappa Layout,5.2253,Nagawara (Proposed)
+Dasarahalli,0.0001,Dasarahalli
+Deepanjali Nagar,0.0033,Deepanjali Nagar
+Defence Colony,0.5799,Indiranagar
+Defence Layout,4.7224,Nagawara (Proposed)
+Dena Bank Colony,2.1346,Indiranagar
+Devanahalli,16.2311,Nagawara (Proposed)
+Devanahalli Road,16.2465,Nagawara (Proposed)
+Devarabisanahalli,4.7081,Agara Lake (u/c)
+Devarachikkanahalli,1.4422,Hongasandra
+Devasandra Extension,2.1366,Sandal Soap Factory
+Devi Nagar,1.8825,Goraguntepalya
+Dhanalakshmi Layout,1.5304,Indiranagar
+Dinnur,3.3224,Nagawara (Proposed)
+Doctors Layout,1.4866,Benniganahalli
+Dodda Banaswadi,2.4947,Baiyappanahalli
+Dodda Kempaiah Layout,4.1068,Krishnarajapura
+Dodda Nekkundi,1.9569,Seetharampalya
+Doddaballapur,9.0833,Nagawara (Proposed)
+Doddabanahalli,2.6651,Whitefield (Kadugodi)
+Doddabele,1.4968,Challaghatta
+Doddabommasandra,3.5258,Goraguntepalya
+Doddagubbi,5.7571,Nagawara (Proposed)
+Doddakallasandra,0.3461,Doddakallasandra
+Doddakammanahalli,2.3601,Kalena Agrahara
+Doddakannelli,5.4879,Agara Lake (u/c)
+Doddanekundi,1.7039,Seetharampalya
+Doddathoguru,1.9153,Beratena Agrahara
+Dodsworth Layout,1.6862,Kadugodi Tree Park
+Dollar Scheme Colony,0.2074,Central Silk Board
+Dollars Colony,2.7977,Yeshwantpur
+Dollars Layout,0.8106,N S Palya
+Dominic Layout,2.4638,Banashankari
+Domlur,1.7649,Indiranagar
+Domlur Layout,1.5974,Indiranagar
+Dommasandra,9.2975,Huskur Road
+Doopanahalli,1.2138,Indiranagar
+Dooravani Nagar,0.5755,Krishnarajapura
+Duvasapalya,0.2879,Pattanagere
+Dwaraka Nagar,8.762,Nagawara (Proposed)
+Dwarka Nagar,4.0437,Chikkabidarakallu
+"ECC Road, Whitefield,",0.6381,Kadugodi Tree Park
+EPIP Zone,0.1744,Nallurahalli
+Ejipura,3.2568,Agara Lake (u/c)
+Electronic City,1.866,Electronic City
+"Electronic City Phase 1,",0.7637,Infosys Foundation Konappana Agrahara
+Electronic City Phase II,0.1732,Infosys Foundation Konappana Agrahara
+"Electronic city Phase 1,",0.7637,Infosys Foundation Konappana Agrahara
+"Electronic city phase 1,",0.7637,Infosys Foundation Konappana Agrahara
+Electronics City Phase 1,1.4451,Infosys Foundation Konappana Agrahara
+Escorts Colony,7.8944,Nagawara (Proposed)
+Ferrar Nagar,9.8311,Jalahalli
+Frazer Town,2.5418,Cubbon Park
+Friends Colony,1.1442,Central Silk Board
+GB Palya,3.2236,Singayyanapalya
+GKW Layout,3.4033,Peenya Industry
+GM Palaya,2.2707,Baiyappanahalli
+Gandhi Bazar,0.6202,National College
+Gandhi Nagar,0.5401,"Sir M. Visvesvaraya Stn., Central College"
+Ganesha Block,3.1149,Nagawara (Proposed)
+Ganga Nagar,3.8445,Sandal Soap Factory
+Garden Layout,2.413,Kundalahalli
+Garudachar Palya,0.481,Garudacharpalya
+Gattahalli,4.209,Infosys Foundation Konappana Agrahara
+Gattigere,1.9288,Rajarajeshwari Nagar
+Gayathri Nagar,0.4712,Mahakavi Kuvempu Road
+Geddalahalli,2.4345,Yeshwantpur
+Geetanjali Layout,1.48,Swami Vivekananda Road
+Geleyara Balaga Layout,2.6744,Nagasandra
+Gkvk Layout,5.0576,Nagawara (Proposed)
+Glass Factory Layout,1.484,Konanakunte Cross
+Gnana Bharathi,1.6602,Mysore Road
+Gokula Extension,1.9434,Mantri Square Sampige Road
+Gollahalli,5.6399,Kalena Agrahara
+Gopal Reddy Layout,2.1168,Seetharampalya
+Gopalapura,0.6296,Magadi Road
+Goraguntepalya,0.3842,Goraguntepalya
+Gottigere,1.7953,Kalena Agrahara
+Govindapura,1.438,Nagawara (Proposed)
+Govindaraja Nagar Ward,0.5173,Vijayanagar
+Gowdanapalya,1.6636,Jaya Prakash Nagar
+Green Domain Layout,0.5328,Kundalahalli
+Green Garden Layout,0.8237,Hosa Road
+Green Glen Layout,2.9638,Agara Lake (u/c)
+Green View Layout,1.6456,Baiyappanahalli
+Green Woods Layout,1.8106,Nagawara (Proposed)
+Gubbalala,0.973,Vajarahalli
+"Gubbi Cross, Hennur Main Road",5.6528,Nagawara (Proposed)
+Guddadahalli,1.2107,Deepanjali Nagar
+Gulakamale,6.4481,Silk Institute
+Gulimangala,2.714,Huskur Road
+Guni Agrahara,6.1944,Nagasandra
+Gunjur,6.3078,Nallurahalli
+Gunjur Palya,6.0185,Nallurahalli
+HAL 2nd Stage,1.179,Indiranagar
+HAL 3rd Stage,1.4226,Indiranagar
+HAL Layout,2.4008,Indiranagar
+HBR Layout,1.1959,Nagawara (Proposed)
+HMT Layout,3.9011,Nagawara (Proposed)
+HOSUR MAIN ROAD,1.4306,Suddaguntepalya
+HRBR Layout,3.2709,Baiyappanahalli
+HSR Layout,0.8225,HSR Layout (u/c)
+"HSR Layout 7th sector,",0.8293,Agara Lake (u/c)
+Hadosiddapura,5.9527,Beratena Agrahara
+Hagadur,2.4971,Kadugodi Tree Park
+Hal old airport road,2.0086,Indiranagar
+Halanayakanahalli,4.6021,Hosa Road
+Handenahalli,8.5966,Delta Electronics Bommasandra
+Hanumagiri,2.7423,Rajarajeshwari Nagar
+Hanuman Nagar,2.1014,Indiranagar
+Hanumanth Nagar,1.1618,National College
+Hanumantha Nagar,1.5549,National College
+Haralur Road,3.0105,Kudlu Gate
+"Haralur Road,",3.0105,Kudlu Gate
+Harappanahalli,7.6981,Delta Electronics Bommasandra
+Harlur,3.8158,Agara Lake (u/c)
+Harohalli,10.9252,Nagawara (Proposed)
+Harsha Layout,10.6575,Challaghatta
+Hebbal,3.5987,Nagawara (Proposed)
+Hebbal Kempapura,2.0668,Nagawara (Proposed)
+Hegde Nagar,3.4354,Nagawara (Proposed)
+Hegganahalli,3.9866,Peenya Industry
+Hennagara,3.5453,Delta Electronics Bommasandra
+Hennur,1.8786,Nagawara (Proposed)
+Hennur Bande,1.8039,Nagawara (Proposed)
+Hennur Gardens,2.0609,Nagawara (Proposed)
+Hennur Road,1.1057,Nagawara (Proposed)
+Herohalli,5.9074,Vijayanagar
+Hessarghatta,0.7842,Dasarahalli
+High grounds,1.2679,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Himagiri Meadows,1.1056,Bilekahalli IIM-B
+Hiremath Layout,0.5242,Vijayanagar
+Hommadevanahalli,3.0642,Kalena Agrahara
+Hongasandra,0.4954,Hongasandra
+Hoodi,1.1702,Hoodi
+"Hoodi Circle,",0.5661,Hoodi
+Hoodi Layout,0.8378,Hoodi
+Horamavu Agara,3.3166,Nagawara (Proposed)
+Horamavu Banaswadi,2.87,Benniganahalli
+Hosa Road,0.1709,Hosa Road
+Hosahalli,0.7037,Vijayanagar
+Hosakerehalli,1.8658,Pantharapalya - Nayandahalli
+Hosakerehalli Layout,1.887,Mysore Road
+Hosapalya,1.4082,Kudlu Gate
+Hoskote,4.0368,Whitefield (Kadugodi)
+Hosur Road,0.0841,Bommanahalli
+Hulimavu,0.8465,Hulimavu
+Hullahalli,5.8366,Kalena Agrahara
+Hunasamaranahalli,10.8524,Nagawara (Proposed)
+Huskur,4.0202,Huskur Road
+ISRO Layout,1.1015,Konanakunte Cross
+ITI Layout,3.4965,Attiguppe
+ITPL,0.3347,Pattandur Agrahara
+Iggalur,4.4843,Delta Electronics Bommasandra
+Ilyas Nagar,0.4168,Jaya Prakash Nagar
+Immadihalli,2.4863,Hopefarm Channasandra
+Indira Nagar,0.5938,Indiranagar
+Indira Nagar 3rd Stage,0.8752,Indiranagar
+Indira Nagar Stage 2,0.5938,Indiranagar
+Indiranagar HAL 2nd Stage,1.1387,Indiranagar
+Infantry Road,0.5342,Mahatma Gandhi Road
+Ittamadu,2.7281,Pantharapalya - Nayandahalli
+J C Nagar,357.9751,Madavara
+JCR Layout,5.0913,Kundalahalli
+JP Nagar,0.8417,Ragigudda
+"JP Nagar 7th Phase,",0.5977,Ragigudda
+"JP Nagar 8th Phase,",0.5496,N S Palya
+"JP nagar 9th Phase,",2.1348,Doddakallasandra
+Jagadish Nagar,3.1507,Baiyappanahalli
+Jai Bheema Nagar,0.5017,Central Silk Board
+Jakkasandra,0.5522,HSR Layout (u/c)
+Jakkasandra Extension,0.8457,Agara Lake (u/c)
+Jakkur,4.4704,Nagawara (Proposed)
+Jakkur Plantation,5.425,Nagawara (Proposed)
+Jakkuru Layout,4.3221,Nagawara (Proposed)
+Jalahalli,0.0,Jalahalli
+Jalahalli East,3.0987,Peenya
+Jalahalli West,0.7794,Jalahalli
+Janatha Colony,3.721,Infosys Foundation Konappana Agrahara
+Jayamahal,1.722,Cubbon Park
+Jayamahal Extension,2.2414,Cubbon Park
+Jayanagar,0.2483,Jayanagar
+"Jayanagar,",0.2483,Jayanagar
+Jayanti Nagar,2.5915,Nagawara (Proposed)
+Jigani,7.6981,Delta Electronics Bommasandra
+Jogupalya,0.2482,Halasuru
+Jp nagar 8th Phase .,0.5496,N S Palya
+Judicial Layout,6.2418,Nagawara (Proposed)
+"Judicial Layout, Kanakapura Road,",0.0234,Silk Institute
+Junnasandra,4.5995,Agara Lake (u/c)
+Jyothi Nagar,1.5421,Kalena Agrahara
+K G Colony,3.8513,Sandal Soap Factory
+KEB Colony,1.3035,South End Circle
+KG Halli,2.3957,Jalahalli
+KPC Layout,4.1311,Agara Lake (u/c)
+KR Garden,3.2488,Indiranagar
+KR Layout,3.0423,Indiranagar
+KR Puram,1.2687,Singayyanapalya
+KSRTC Layout,0.7342,Ragigudda
+KUDLU MAIN ROAD,1.0199,Kudlu Gate
+Kachanayakanahalli,2.336,Delta Electronics Bommasandra
+Kacharakanahalli,2.359,Nagawara (Proposed)
+Kada Agrahara,8.7653,Nagawara (Proposed)
+Kadabagere,6.4881,Attiguppe
+Kadarenahalli,1.0353,Banashankari
+Kadubeesanahalli,4.7705,Kundalahalli
+Kadugodi,0.0,Whitefield (Kadugodi)
+Kadugondanahalli,2.4258,Nagawara (Proposed)
+Kaggadasapura,1.8222,Benniganahalli
+Kaggalipura,6.2653,Silk Institute
+Kaikondrahalli,3.7488,Agara Lake (u/c)
+Kalasipalya,0.7204,Krishna Rajendra Market
+Kalena Agrahara,0.6982,Kalena Agrahara
+Kalhalli,11.1214,Huskur Road
+Kalkere,3.8425,Krishnarajapura
+Kalkere Channasandra,4.3578,Krishnarajapura
+Kalyan nagar,2.7974,Nagawara (Proposed)
+Kamakshipalya,1.7202,Vijayanagar
+Kamakya Layout,2.8107,Banashankari
+Kamala Nagar,1.7399,National College
+Kambipura,1.6786,Challaghatta
+Kamdhenu Nagar,0.6808,Singayyanapalya
+Kammanahalli,3.0873,Baiyappanahalli
+Kammasandra,9.4658,Singayyanapalya
+Kanaka Nagar,1.8833,Nagawara (Proposed)
+Kanakadasa Layout,0.4501,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Kanakapura,0.4149,Banashankari
+Kanakapura Main Road,0.5541,South End Circle
+Kanakapura Road,0.0677,Silk Institute
+"Kanakapura Road,",0.0677,Silk Institute
+Kanakapura main  Road,0.5541,South End Circle
+Kanakpura Road,0.1171,Doddakallasandra
+Kannamangala,2.2661,Whitefield (Kadugodi)
+Kannur,6.6776,Nagawara (Proposed)
+Kariyammana Agrahara,5.0804,Agara Lake (u/c)
+Karuna Nagar,0.4392,Ragigudda
+Kasavanhalli,3.915,Agara Lake (u/c)
+Kashi Nagar,1.5619,Benniganahalli
+Kasturi Nagar,1.2036,Baiyappanahalli
+Kathriguppe,2.8754,Mysore Road
+Kattigenahalli,8.3957,Nagawara (Proposed)
+Kaval Byrasandra,2.9948,Nagawara (Proposed)
+Kaverappa Layout,4.9177,Kundalahalli
+Kaveri Nagar,1.9701,Nagawara (Proposed)
+Keerthi Layout,3.4851,Delta Electronics Bommasandra
+Kempapura,1.7635,Nagawara (Proposed)
+Kempegowda Nagar,2.5783,Mahalakshmi
+Kenchenahalli,0.9671,Jnanabharathi
+Kengeri,0.5397,Kengeri Bus Terminal
+Kengeri Satellite Town,0.9852,Kengeri Bus Terminal
+Kereguddadahalli,3.8774,Nagasandra
+Keshava Nagar,0.2308,Attiguppe
+Kirloskar Layout,2.0035,Manjunathanagara
+Kodathi,6.5928,Electronic City
+Kodichikkanahalli,1.3952,Bilekahalli IIM-B
+Kodigehalli,2.067,Pattandur Agrahara
+Kodihalli,1.828,Indiranagar
+Kodipalya,1.4248,Kengeri
+Kogilu,7.2113,Nagawara (Proposed)
+Konanakunte,1.3224,Konanakunte Cross
+Konanakunte Cross,0.2249,Konanakunte Cross
+Konappana Agrahara,0.6464,Electronic City
+Konena Agrahara,3.1352,Indiranagar
+Koppa,2.5354,Kalena Agrahara
+Koramangala,2.1637,Central Silk Board
+Koramangala Industrial Layout,1.5931,Suddaguntepalya
+Kothanur,1.2797,Kalena Agrahara
+Krishna Nagar,1.1934,Kalena Agrahara
+Krishna Reddy Layout,3.2864,Agara Lake (u/c)
+Kudlu,1.4703,Singasandra
+Kudlu Gate,0.0504,Kudlu Gate
+Kumara Park,0.8485,Mantri Square Sampige Road
+Kumbena Agrahara,1.3275,Whitefield (Kadugodi)
+Kundalahalli,0.0,Kundalahalli
+Kundalahalli Colony,0.8847,Kundalahalli
+Kurubarahalli,1.4496,Rajajinagar
+Kuvempu Layout,0.5448,BTM Layout
+Kuvempu Nagar,0.6555,BTM Layout
+Kyalasanahalli,4.0336,Nagawara (Proposed)
+LB Shastri Nagar,3.3968,Benniganahalli
+LIC Colony,0.9387,Ragigudda
+Laggere,2.8093,Peenya
+Lake City,1.5636,Bommanahalli
+Lakkasandra,0.9662,Suddaguntepalya
+Lakshmi Layout,1.3631,Bilekahalli IIM-B
+Lakshmipura,5.3274,Dasarahalli
+Lal Bahadur Shastri Nagar,3.207,Benniganahalli
+Lalbagh Road,1.109,Lalbagh
+Langford Gardens,1.6706,Mahatma Gandhi Road
+Langford Town,1.977,Mahatma Gandhi Road
+Lavelle Road,0.9536,Mahatma Gandhi Road
+Lingarajapuram,3.2645,Swami Vivekananda Road
+M C Layout,0.3226,Vijayanagar
+M.G Road,0.1493,Trinity
+MCECHS  layout,3.5266,Nagawara (Proposed)
+MLA Layout,3.74,Mantri Square Sampige Road
+Madavara,0.0001,Madavara
+Madiwala,0.6656,Central Silk Board
+Magadi Road,0.0027,Magadi Road
+Mahadevpura,0.0354,Singayyanapalya
+Mahalakshmi Layout,0.5747,Mahalakshmi
+Mailasandra,0.6049,Kengeri Bus Terminal
+Maithri Layout,0.3492,Hopefarm Channasandra
+Makali,2.2935,Madavara
+Mallasandra,1.3274,Dasarahalli
+Mallathahalli,3.4909,Attiguppe
+Malleshpalya,2.5367,Benniganahalli
+Malleshwaram,1.0361,Srirampura
+Manayata Tech Park,0.4057,Nagawara (Proposed)
+Mangammanapalya,0.7278,Hongasandra
+Manjunath Nagar,3.2307,Indiranagar
+Manjunatha Layout,3.2652,Singayyanapalya
+Manorayana Palya,2.4654,Nagawara (Proposed)
+Maragondanahalli,4.4836,Krishnarajapura
+Marasandra,11.6147,Nagawara (Proposed)
+Marathahalli,3.0602,Seetharampalya
+Marathalli bridge,2.5362,Kundalahalli
+Marathi Layout,1.0187,Agara Lake (u/c)
+Marenahalli,0.3873,Ragigudda
+Margondanahalli,3.7499,Singayyanapalya
+Marsur,5.9847,Delta Electronics Bommasandra
+Maruthi Extension,0.1247,Srirampura
+Maruthi HBCS Layout,0.9021,Rajajinagar
+Maruthi Layout,0.4495,BTM Layout
+Maruthi Nagar,2.5544,Benniganahalli
+Maruthi Sevanagar,2.1724,Swami Vivekananda Road
+Mathikere,1.4381,Yeshwantpur
+Mathikere SBM colony,1.7164,Yeshwantpur
+Medahalli,4.2417,Garudacharpalya
+Medi Agrahara,6.5,Nagasandra
+Michael Palaya,0.2587,Swami Vivekananda Road
+Mico Layout,0.5325,N S Palya
+Milk Colony,0.7544,Sandal Soap Factory
+Millers Road,1.6895,Cubbon Park
+Moodalapalya,1.7238,Vijayanagar
+Muneshwara Nagar,1.6722,Garudacharpalya
+Murugeshpalya,2.8312,Indiranagar
+Mylasandra,0.9233,Pattanagere
+Mysore Highway,2.2143,Challaghatta
+Mysore Road,0.0097,Mysore Road
+NR Colony,1.2727,South End Circle
+NRI Layout,3.04,Krishnarajapura
+NS Palya,0.3756,N S Palya
+Nagadevanahalli,1.8936,Pattanagere
+Naganathapura,1.6534,Beratena Agrahara
+Nagappa Reddy Layout,1.959,Kundalahalli
+Nagarbhavi,1.2501,Pantharapalya - Nayandahalli
+Nagarbhavi  BDA Complex,3.0568,Vijayanagar
+Nagasandra,0.0,Nagasandra
+Nagavara,0.5523,Nagawara (Proposed)
+Nagavarapalya,0.7418,Baiyappanahalli
+Nagawara Junction,0.4076,Nagawara (Proposed)
+Nagondanahalli,2.2362,Hopefarm Channasandra
+Naidu Layout,2.7504,Yeshwantpur
+Nallurhalli,0.0001,Nallurahalli
+Nandi Durga Road,2.6339,Cubbon Park
+Nandini Layout,1.753,Mahalakshmi
+Nanjappa Garden,3.4737,Nagawara (Proposed)
+Nanjappa Layout,4.6716,Peenya
+Nanjappa Layout Vidyaranyapura,4.6716,Peenya
+Narasapura,5.1608,Peenya
+Narayanappa Garden,2.3651,Kadugodi Tree Park
+Narayanapura,3.3242,Nagawara (Proposed)
+Navodaya Nagar,1.4172,Hulimavu
+Ncpr Industrial Layout,0.3534,Hoodi
+"Near Electronic City,",0.8207,Rajajinagar
+Neeladri Nagar,2.3754,Electronic City
+Neelasandra,2.303,Trinity
+Nehru Nagar,0.8287,"Nadaprabhu Kempegowda Station, Majestic"
+Nelamangala,9.5996,Madavara
+New Gurappana Palya,0.7035,Suddaguntepalya
+New Thippasandra,1.8672,Baiyappanahalli
+Ngef Layout,2.595,Pantharapalya - Nayandahalli
+Nobo Nagar,0.4889,Kalena Agrahara
+OMBR Layout,1.9411,Baiyappanahalli
+"Off Sarjapur Road,",4.9368,Agara Lake (u/c)
+"Off Sarjapur road,",4.9368,Agara Lake (u/c)
+Okalipura,0.7883,Krantivira Sangolli Rayanna Railway Station
+Old Airport Road,3.115,Indiranagar
+Old Madras Road,1.2505,Singayyanapalya
+Old Mangammanapalya Road,0.4608,Hongasandra
+Omkar Nagar,0.6831,Bilekahalli IIM-B
+Outer Ring Road East,1.4794,Seetharampalya
+P Krishnappa Layout,5.5496,Agara Lake (u/c)
+P&T Colony,2.1029,Indiranagar
+P&T Layout,1.8043,Singayyanapalya
+PC Palaya,0.3425,Garudacharpalya
+PNS Layout,5.0718,Nagawara (Proposed)
+Padmanabhanagar,1.7564,Banashankari
+Pai Layout,0.424,Benniganahalli
+Palace Guttahalli,1.7845,Mantri Square Sampige Road
+Palace Road,0.1933,"Sir M. Visvesvaraya Stn., Central College"
+Palanahalli,8.3083,Nagawara (Proposed)
+Pampa Extension,3.0906,Nagawara (Proposed)
+Panathur,4.8631,Kundalahalli
+"Panathur Road,",2.9559,Kundalahalli
+Panduranga Nagar,0.4767,Bilekahalli IIM-B
+Parappana Agrahara,1.7932,Hosa Road
+Pattanagere,1.0273,Pattanagere
+Pattandur Agrahara,0.0,Pattandur Agrahara
+Peenya,0.0043,Peenya
+Phase 1 Kammasandra,9.4658,Singayyanapalya
+Pillahalli,6.9192,Madavara
+Poorna Pragna Layout,3.3811,Rajarajeshwari Nagar
+Postal Colony,3.2359,Yeshwantpur
+Pragathi Nagar,2.73,Seetharampalya
+Prakash Nagar,0.1847,Srirampura
+Prakruthi Nagar,6.2628,Nagawara (Proposed)
+Prasanna layout Herohalli,5.2702,Vijayanagar
+Prashanth Nagar,0.9913,Vijayanagar
+Prestige Sunrise,1.6693,Huskur Road
+Prithvi Layout,1.0102,Kadugodi Tree Park
+Puttanahalli,9.321,Nagawara (Proposed)
+Puttappa Layout,1.7317,Indiranagar
+Queens Road,2.4608,Yeshwantpur
+R.T. Nagar,3.6448,Nagawara (Proposed)
+RBI Layout,1.4742,Hulimavu
+RK Layout 2nd Stage,2.8986,Sandal Soap Factory
+RMC YARD,0.2202,Yeshwantpur
+RMV,2.5575,Yeshwantpur
+RMV 2nd Stage,2.5575,Yeshwantpur
+RMV Extension,3.0285,Yeshwantpur
+RMV Extension Stage 2,2.7456,Sandal Soap Factory
+RPC layout,0.2683,Attiguppe
+RR Layout,0.1994,HSR Layout (u/c)
+RR Nagar,1.169,Rajarajeshwari Nagar
+Race Course Road,0.8055,"Nadaprabhu Kempegowda Station, Majestic"
+Rachenahalli,1.8517,Nagawara (Proposed)
+Raghavendra Layout,1.1416,Yelachenahalli
+Raghavendra Nagar,0.9483,Yelachenahalli
+Raghuvanahalli,9.9288,Whitefield (Kadugodi)
+Rahat Bagh,0.9507,Benniganahalli
+Rahmath Nagar,3.7514,Mantri Square Sampige Road
+Rainbow Drive,4.9459,Agara Lake (u/c)
+Raja Rajeshwari Nagar,0.5385,Jnanabharathi
+Raja Rajeshwari Nagara,0.7445,Rajarajeshwari Nagar
+Rajaji Nagar,0.5288,Mahakavi Kuvempu Road
+Rajankunte,15.5787,Dasarahalli
+Rajanna Layout,0.419,Suddaguntepalya
+Rajapura,4.8656,Delta Electronics Bommasandra
+Rajarajeshwari Nagara,1.8914,Jnanabharathi
+Rajarajeshwari nagar,0.9584,Jnanabharathi
+Rajarajeshwarinagar,3.0663,Pattanagere
+Rajasree Layout,4.6814,Peenya
+Rajiv Gandhi Nagar,4.5569,Nagawara (Proposed)
+Rajiv Nagar,4.5569,Nagawara (Proposed)
+Ramagondanahalli,2.866,Nallurahalli
+Ramakrishnappa Layout,2.395,Vijayanagar
+Ramamurthy Nagar,1.3477,Krishnarajapura
+Ramamurthy Nagar Extension,0.3486,Srirampura
+Ramesh Nagar,3.6738,Seetharampalya
+Rayasandra,2.3188,Beratena Agrahara
+Rest House Road,0.2003,Mahatma Gandhi Road
+Richards Town,3.2559,Halasuru
+Richmond Road,1.0157,Mahatma Gandhi Road
+Richmond Town,1.4456,Mahatma Gandhi Road
+Ring Road Nagarbhavi,2.2619,Attiguppe
+Roopena Agrahara,0.2874,Bommanahalli
+S R Layout,1.1426,Jaya Prakash Nagar
+SBM Colony,2.2414,Deepanjali Nagar
+SHANTHINAGAR,2.1262,Mahatma Gandhi Road
+SK Garden,2.8166,Cubbon Park
+SMV layout,2.5338,Hosa Road
+SRINIVASAPURA,7.1095,Nagawara (Proposed)
+Sabari Nagar,0.4412,Mahatma Gandhi Road
+Sadahalli,18.155,Nagawara (Proposed)
+Sadaramangala,1.2528,Pattandur Agrahara
+Sadashiva Nagar,2.5024,Srirampura
+Sadhguru Layout,1.7787,Mantri Square Sampige Road
+Sahakara Nagar,5.3317,Nagawara (Proposed)
+Sahyadri Layout,1.063,Jaya Prakash Nagar
+Sai Gardens,4.5666,Agara Lake (u/c)
+Sampangi Rama Nagar,1.2573,"Sir M. Visvesvaraya Stn., Central College"
+Sampangirama Nagar,0.2002,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Sampige Layout,1.1667,Vijayanagar
+Sampigehalli,4.2854,Nagawara (Proposed)
+Sanjay nagar,2.9141,Seetharampalya
+Sanjeevini Nagar,0.1324,Ragigudda
+Saptagiri Layout,2.3059,Electronic City
+Sarakki Nagar,0.8238,Ragigudda
+Sarjapur,0.645,"Sir M. Visvesvaraya Stn., Central College"
+Sarjapur  Road,0.468,Agara Lake (u/c)
+"Sarjapur Road,",0.4432,Agara Lake (u/c)
+Sarvabhouma Nagar,2.9211,Jaya Prakash Nagar
+Sathanur,3.4938,Nagawara (Proposed)
+Sathya Layout,0.7996,Hoodi
+Sathya Sai Layout,5.1443,Kundalahalli
+Sector 1 HSR Layout,1.3025,Agara Lake (u/c)
+Sector 2 HSR Layout,1.3049,Agara Lake (u/c)
+Sector 4 HSR Layout,0.6733,Agara Lake (u/c)
+Sector 6 HSR Layout,0.1994,HSR Layout (u/c)
+Sector 7 HSR Layout,1.1447,HSR Layout (u/c)
+Seegehalli,2.9659,Garudacharpalya
+Seetharampalya,0.0601,Seetharampalya
+Seshadripuram,0.6364,Mantri Square Sampige Road
+Shakthi Nagar,2.8595,Nagawara (Proposed)
+Shampura,1.9462,Nagawara (Proposed)
+Shankarapuram,0.4466,National College
+Shanthala Nagar,0.9182,Mahatma Gandhi Road
+Shanthi Layout,1.9765,Krishnarajapura
+Shanti Nagar,1.6772,Lalbagh
+Shantiniketan Layout,0.738,Hulimavu
+Shettigere,17.2366,Nagawara (Proposed)
+Shettihalli,2.2688,Jalahalli
+Shetty Halli,1.3696,Jalahalli
+Shikaripalya,1.9142,Infosys Foundation Konappana Agrahara
+Shirdi Sai Layout,0.3637,BTM Layout
+Shirdi Sai Nagar,0.8454,Halasuru
+Shivaji Nagar,0.8763,Cubbon Park
+Shivanagar,1.3677,Magadi Road
+Siddapura,1.3082,Lalbagh
+Sidedahalli,1.3883,Manjunathanagara
+Silk Board,0.0925,Central Silk Board
+Silver Springs Layout,2.2392,Kundalahalli
+Sindhi Colony,2.2943,Halasuru
+Singanayakanahalli,13.1561,Dasarahalli
+Singapura Village,4.918,Jalahalli
+Singasandra,0.3779,Singasandra
+Singena Agrahara,3.4988,Delta Electronics Bommasandra
+Sir M V Nagar,1.0717,Jayanagar
+Sneha Colony,2.6597,Halasuru
+Someshwara Layout,5.7551,Agara Lake (u/c)
+Sompura,3.9727,Silk Institute
+Sonnenahalli,2.8877,Pattanagere
+Soppahalli,8.0073,Delta Electronics Bommasandra
+Soundarya Layout,1.8817,Chikkabidarakallu
+Sree Narayana Nagar,0.2377,Doddakallasandra
+Sri Balaji Krupa Layout,0.7464,Hosa Road
+Sri Sai Layout,2.1529,Nagawara (Proposed)
+Srigandada Kaval,4.0196,Vijayanagar
+Srinagar,1.6202,Deepanjali Nagar
+Srinivas Colony,1.8538,Indiranagar
+Srinivasa Nagar,1.7175,"Sri Balagangadharanatha Swamiji Station, Hosahalli"
+Srirampura,0.0117,Srirampura
+St Thomas Town,3.3463,Swami Vivekananda Road
+St. John's Road,1.5073,Trinity
+Subash Nagar,0.9309,Rajarajeshwari Nagar
+Subhash Nagar,0.1441,Mantri Square Sampige Road
+Subramanya Nagar,0.7701,Mahakavi Kuvempu Road
+Subramanyapura,2.7601,Doddakallasandra
+Suddaguntepalya,1.0279,Suddaguntepalya
+Sultan Palaya,0.7088,Chickpete
+Sundara Nagar,0.204,Trinity
+Sunkadakatte,4.6666,Vijayanagar
+Surabhi Layout,6.2421,Nagawara (Proposed)
+Suragajakkanahalli,9.5792,Delta Electronics Bommasandra
+Suraksha Nagar,0.0774,Mahatma Gandhi Road
+Suryanagar,5.1459,Delta Electronics Bommasandra
+Syndicate Bank Colony,1.3731,Vijayanagar
+T C Palya main Road,2.4871,Krishnarajapura
+T Dasarahalli,0.562,Dasarahalli
+T G extension,2.3218,Cubbon Park
+T c palya,2.1746,Singayyanapalya
+T.C PALYA,2.1746,Singayyanapalya
+TC Palaya,1.5611,Singayyanapalya
+Tasker Town,0.5262,Mahatma Gandhi Road
+Tata Nagar,0.3091,Jnanabharathi
+Tavarekere,0.6243,BTM Layout
+Teachers Colony,0.2895,HSR Layout (u/c)
+Tejaswini Nagar,1.7877,Kalena Agrahara
+Telecom Layout,0.9817,"Sri Balagangadharanatha Swamiji Station, Hosahalli"
+Thanisandra,1.3285,Nagawara (Proposed)
+"Thanisandra Main Road,",0.2424,Nagawara (Proposed)
+Thanisandra main road,0.2218,Nagawara (Proposed)
+Tharabanahalli,4.9805,Madavara
+Thigalarapalya,3.8736,Manjunathanagara
+Thippasandra,1.4234,Indiranagar
+Thirumenahalli,5.4063,Nagawara (Proposed)
+Thirupalya,1.8761,Biocon Hebbagodi
+Thomas Town,3.3463,Swami Vivekananda Road
+Thubarahalli,2.4606,Nallurahalli
+Thyagaraja Nagar,1.3005,Jayanagar
+Tilak Nagar,0.6661,Suddaguntepalya
+Tindlu,5.9299,Goraguntepalya
+Tippenahalli,1.6214,Manjunathanagara
+Tumkur Road,0.3024,Sandal Soap Factory
+Tunganagara,5.8756,Attiguppe
+Uday Nagar,0.7236,Benniganahalli
+Udaya Nagar,0.4305,Benniganahalli
+Ullal Road,2.9947,Jnanabharathi
+Ulsoor,0.267,Halasuru
+Upkar Layout,4.2509,Jnanabharathi
+Uttarahalli,2.4546,Doddakallasandra
+V.V Puram,0.3466,National College
+Vaderahalli,6.6549,Dasarahalli
+Vaishnavi Layout,5.3238,Peenya
+Vajarahalli,0.0,Vajarahalli
+Varanasi,3.5214,Krishnarajapura
+Varthur,4.6639,Nallurahalli
+Varthur Road,2.3389,Nallurahalli
+"Varthur Road,",2.3389,Nallurahalli
+Vasantapura main road,0.4025,Doddakallasandra
+Vasanth nagar,1.4123,Cubbon Park
+Vasanthapura,0.3296,Konanakunte Cross
+Veer Sandra,0.2546,Huskur Road
+Veerabhadra Nagar,3.1868,Seetharampalya
+Veerannapalya,1.2477,Nagawara (Proposed)
+Venkatadri Layout,3.7368,Kundalahalli
+Venkatapura,1.7841,Challaghatta
+Venkateshpuram,3.3177,Nagawara (Proposed)
+Venkateswara Nagar,2.0692,Yeshwantpur
+Versova Layout,1.404,Benniganahalli
+Vibuthipura,3.3416,Benniganahalli
+Victoria Layout,0.8715,Trinity
+Vidya Nagar,0.8266,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Vidyaranyapura,5.5306,Peenya
+Vignana Nagar,5.195,Nagawara (Proposed)
+Vijay Nagar,0.971,N S Palya
+Vijaya Bank Colony,1.1265,Bilekahalli IIM-B
+Vijaya Bank Layout,1.9573,Hulimavu
+Vijayanagar,0.0021,Vijayanagar
+Vijinapura,0.6241,Krishnarajapura
+Vikram Nagar,1.0268,Yelachenahalli
+Vimanapura,3.2399,Indiranagar
+Vinayaka Layout,2.4765,Attiguppe
+Vinayaka Nagar,2.3819,Vijayanagar
+Virat Nagar,0.9886,Bommanahalli
+Virgonagar,6.8683,Garudacharpalya
+Virupakshapura,5.0934,Yeshwantpur
+Vishwanatha Nagenahalli,2.3794,Nagawara (Proposed)
+Vittal Mallya Road,1.0686,"Dr. B. R. Ambedkar Station, Vidhana Soudha"
+Vittal Nagar,1.5911,Konanakunte Cross
+Vittasandra,2.2617,Singasandra
+Vivek Nagar,2.331,Trinity
+Viviani Road,3.1964,Cubbon Park
+Vyalikaval,1.5568,Srirampura
+Weavers Colony,3.1196,Kalena Agrahara
+West of Chord Road,0.3466,Rajajinagar
+Wheelers Road,2.5961,Halasuru
+Whitefield,0.0,Whitefield (Kadugodi)
+"Whitefield,",0.0,Whitefield (Kadugodi)
+Williams Town,2.2548,Cubbon Park
+Wilson Garden,1.8414,Lalbagh
+Xavier Layout,1.0444,Trinity
+Yarandahalli,2.5639,Delta Electronics Bommasandra
+Yediyur,0.418,Jayanagar
+Yelachenahalli,0.5207,Yelachenahalli
+Yelahanka,7.1927,Nagawara (Proposed)
+Yelahanka New Town,7.7777,Nagawara (Proposed)
+Yelenahalli,1.7455,Kalena Agrahara
+Yemlur,4.5719,Agara Lake (u/c)
+Yeshwanthpur,0.3758,Sandal Soap Factory
+arudi,47.9928,Madavara
+ittamadu,2.7281,Pantharapalya - Nayandahalli
+kanakapura main road,0.5541,South End Circle
+kanakapura road,0.0677,Silk Institute
+manyata,2.961,Benniganahalli
+manyata park,1.4891,Nagawara (Proposed)
+manyata tech park,0.7825,Nagawara (Proposed)
+mvj engineering college,0.9484,Hopefarm Channasandra
+poornaprajna layout,3.248,Doddakallasandra
+rr nagar,1.169,Rajarajeshwari Nagar
+sapthagiri Layout,1.3169,Nagasandra
+sarjapura main road,2.0313,Beratena Agrahara
+south,1.4514,HSR Layout (u/c)
+t.c palya,2.1746,Singayyanapalya
+tc.palya,3.2236,Singayyanapalya
+whitefiled,4.0368,Whitefield (Kadugodi)

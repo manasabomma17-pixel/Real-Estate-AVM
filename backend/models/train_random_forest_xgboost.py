@@ -68,7 +68,8 @@ baseline_rmse = baseline["rmse"]
 
 conditions = {
     "property_only": PROPERTY_FEATURES,
-    "plus_amenities": PROPERTY_FEATURES + ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km", "dist_to_transit_km"],
+    "plus_amenities": PROPERTY_FEATURES + ["lat", "lon", "dist_to_school_km", "dist_to_hospital_km",
+                                           "dist_to_transit_km", "dist_to_metro_km"],
     "plus_area_price": ALL_FEATURES,
 }
 

@@ -149,3 +149,8 @@ def test_advice_includes_building_age_without_changing_the_model_price():
     assert body["age"]["depreciation_percent"] == 30.0
     assert body["age"]["adjusted_price"] < plain.today_price
     assert body["suggestions"][0]["title"] == "Older building"
+
+
+def test_prices_say_how_recent_they_are():
+    result = predict(make_request())
+    assert result.prices_updated_to

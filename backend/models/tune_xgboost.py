@@ -98,7 +98,10 @@ if tuned_rmse < default_rmse:
     pd.DataFrame([search.best_params_]).to_csv("reports/best_params.csv", index=False)
     print("Tuned model is better - saved to backend/models/trained_model.pkl")
 else:
-    print("Tuned model is NOT better - keeping the existing model")
+    # still save a model trained on today's features, so the saved model and
+    # the location lookup below always have the same columns
+    joblib.dump(default_model, "backend/models/trained_model.pkl")
+    print("Tuned model is NOT better - saved the default model instead")
 
 # the API looks up each area's position, distances and price level here,
 # built from the same rows and the same training medians as the model

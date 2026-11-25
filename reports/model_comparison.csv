@@ -2,7 +2,7 @@ model,condition,rmse,mae,mape_percent,r2,rmse_improvement_vs_baseline
 Baseline,area_rate_x_size,54.82,27.72,25.6,0.6543,0.0
 Random Forest,property_only,59.17,29.73,28.4,0.5973,-7.9
 XGBoost,property_only,58.95,30.06,28.7,0.6002,-7.5
-Random Forest,plus_amenities,48.07,23.77,22.7,0.7342,12.3
-XGBoost,plus_amenities,47.52,24.14,23.3,0.7402,13.3
-Random Forest,plus_area_price,49.41,23.61,22.0,0.7192,9.9
-XGBoost,plus_area_price,48.28,23.88,22.7,0.7318,11.9
+Random Forest,plus_amenities,47.51,23.62,22.6,0.7403,13.3
+XGBoost,plus_amenities,48.47,24.53,23.4,0.7297,11.6
+Random Forest,plus_area_price,49.08,23.44,21.9,0.7228,10.5
+XGBoost,plus_area_price,47.71,23.46,22.5,0.7381,13.0

@@ -1,0 +1,191 @@
+=== 1. Distance to the nearest metro station ===
+Metro stations: 91
+Areas: 901
+Median distance to metro: 1.8 km
+Areas within 1 km of a metro: 280
+Saved /Users/manasabomma/Real-Estate-AVM/data/processed/metro_distances.csv
+
+=== 2. Final dataset ===
+Final rows: 11672
+Missing school distance: 2065
+Missing hospital distance: 1829
+Missing transit distance: 1843
+Missing metro distance: 0
+Saved final dataset!
+
+=== 3. Baseline and linear models ===
+Loaded 11672 rows
+
+--- Price distribution diagnostics ---
+count    11672.000000
+mean       113.424387
+std        155.620597
+min          8.000000
+25%         49.842500
+50%         70.000000
+75%        120.000000
+max       3600.000000
+Name: price, dtype: float64
+
+Price-per-sqft distribution:
+count    11672.000000
+mean         0.065081
+std          0.043767
+min          0.000023
+25%          0.042428
+50%          0.053862
+75%          0.070968
+max          1.764706
+dtype: float64
+
+Total sqft distribution (checking for land-unit conversion outliers):
+count    1.167200e+04
+mean     1.971436e+03
+std      1.844398e+04
+min      2.500000e+02
+25%      1.110000e+03
+50%      1.295000e+03
+75%      1.692000e+03
+max      1.306800e+06
+Name: total_sqft_clean, dtype: float64
+
+99th percentile price: 700.0
+Max price: 3600.0
+99th percentile sqft: 5400.0
+Max sqft: 1306800.0
+Trimmed 400 extreme outliers (price/sqft ratio and/or raw sqft) (11672 -> 11272 rows)
+
+Train: 9017 rows | Test: 2255 rows
+
+--- Baseline: neighborhood median $/sqft ---
+  Baseline              RMSE=   54.82  MAE=   27.72  MAPE= 25.61%  R2=0.6543
+
+--- Condition: property_only (4 features) ---
+  Linear Regression     RMSE=   83.80  MAE=   36.48  MAPE= 32.49%  R2=0.1921
+  Ridge                 RMSE=   83.80  MAE=   36.47  MAPE= 32.49%  R2=0.1922
+  Lasso                 RMSE=   82.01  MAE=   36.19  MAPE= 32.48%  R2=0.2264
+
+--- Condition: plus_location (10 features) ---
+  Linear Regression     RMSE=   82.42  MAE=   35.47  MAPE= 31.67%  R2=0.2186
+  Ridge                 RMSE=   82.41  MAE=   35.46  MAPE= 31.67%  R2=0.2187
+  Lasso                 RMSE=   80.87  MAE=   35.37  MAPE= 31.66%  R2=0.2477
+
+--- Condition: plus_location_encoded (11 features) ---
+  Linear Regression     RMSE=   71.73  MAE=   31.35  MAPE= 27.77%  R2=0.4081
+  Ridge                 RMSE=   71.72  MAE=   31.34  MAPE= 27.77%  R2=0.4082
+  Lasso                 RMSE=   69.53  MAE=   30.98  MAPE= 27.73%  R2=0.4439
+
+--- Condition: plus_location_interaction (12 features) ---
+  Linear Regression     RMSE=   70.04  MAE=   30.66  MAPE= 27.70%  R2=0.4356
+  Ridge                 RMSE=   70.04  MAE=   30.66  MAPE= 27.70%  R2=0.4357
+  Lasso                 RMSE=   69.53  MAE=   30.98  MAPE= 27.73%  R2=0.4439
+
+=== Summary: RMSE improvement over baseline ===
+  [property_only ] Linear Regression      -52.9%  (target: >=60%)
+  [property_only ] Ridge                  -52.9%  (target: >=60%)
+  [property_only ] Lasso                  -49.6%  (target: >=60%)
+  [plus_location ] Linear Regression      -50.4%  (target: >=60%)
+  [plus_location ] Ridge                  -50.3%  (target: >=60%)
+  [plus_location ] Lasso                  -47.5%  (target: >=60%)
+  [plus_location_encoded] Linear Regression      -30.9%  (target: >=60%)
+  [plus_location_encoded] Ridge                  -30.8%  (target: >=60%)
+  [plus_location_encoded] Lasso                  -26.8%  (target: >=60%)
+  [plus_location_interaction] Linear Regression      -27.8%  (target: >=60%)
+  [plus_location_interaction] Ridge                  -27.8%  (target: >=60%)
+  [plus_location_interaction] Lasso                  -26.8%  (target: >=60%)
+
+Saved results to reports/baseline_and_linear_results.csv
+
+=== 4. Random Forest and XGBoost (does location help?) ===
+Rows after cleaning: 11272
+Train rows: 9017  Test rows: 2255
+
+--- Baseline ---
+  Baseline       area_rate_x_size RMSE= 54.82  MAE= 27.72  MAPE= 25.6%  R2=0.654  vs baseline +0.0%
+
+--- property_only (3 features) ---
+  Random Forest  property_only    RMSE= 59.17  MAE= 29.73  MAPE= 28.4%  R2=0.597  vs baseline -7.9%
+  XGBoost        property_only    RMSE= 58.95  MAE= 30.06  MAPE= 28.7%  R2=0.600  vs baseline -7.5%
+
+--- plus_amenities (9 features) ---
+  Random Forest  plus_amenities   RMSE= 47.51  MAE= 23.62  MAPE= 22.6%  R2=0.740  vs baseline +13.3%
+  XGBoost        plus_amenities   RMSE= 48.47  MAE= 24.53  MAPE= 23.4%  R2=0.730  vs baseline +11.6%
+
+--- plus_area_price (10 features) ---
+  Random Forest  plus_area_price  RMSE= 49.08  MAE= 23.44  MAPE= 21.9%  R2=0.723  vs baseline +10.5%
+  XGBoost        plus_area_price  RMSE= 47.71  MAE= 23.46  MAPE= 22.5%  R2=0.738  vs baseline +13.0%
+
+Saved to reports/model_comparison.csv
+
+Adding location cuts XGBoost RMSE from 58.95 to 47.71 Lakhs, a 19.1 % improvement
+
+=== 5. Tune XGBoost and save the model ===
+Rows after removing outliers: 11272
+
+Baseline RMSE: 54.82
+
+--- Before tuning ---
+XGBoost (default) -> RMSE: 47.71  MAE: 23.46  R2: 0.7381  Improvement vs baseline: 13.0 %
+
+--- Tuning (this takes a few minutes) ---
+Fitting 3 folds for each of 25 candidates, totalling 75 fits
+
+Best settings found:
+  subsample = 0.8
+  n_estimators = 100
+  max_depth = 6
+  learning_rate = 0.05
+  colsample_bytree = 1.0
+
+--- After tuning ---
+XGBoost (tuned) -> RMSE: 46.57  MAE: 23.94  R2: 0.7505  Improvement vs baseline: 15.0 %
+
+Tuning improved RMSE by 2.4 % compared to the default model
+Tuned model is better - saved to backend/models/trained_model.pkl
+Saved location lookup for 881 areas
+
+=== 6. Measured error of the saved model ===
+Average percentage error (MAPE): 23.7 %
+Average error (MAE): 23.94 Lakhs
+RMSE: 46.57 Lakhs
+R2: 0.7505
+Estimates within 10% of the real price: 33.0 %
+Estimates within 20% of the real price: 56.8 %
+Saved to reports/model_error.csv
+
+=== 7. SHAP explanation ===
+Calculating SHAP values for 11272 properties...
+
+--- Which features drive the price the most? ---
+total_sqft_clean -> 39.64 Lakhs average effect
+location_price -> 18.28 Lakhs average effect
+bath -> 11.06 Lakhs average effect
+bhk -> 3.74 Lakhs average effect
+lon -> 1.4 Lakhs average effect
+lat -> 1.26 Lakhs average effect
+dist_to_hospital_km -> 1.05 Lakhs average effect
+dist_to_metro_km -> 0.98 Lakhs average effect
+dist_to_school_km -> 0.7 Lakhs average effect
+dist_to_transit_km -> 0.48 Lakhs average effect
+
+Saved to reports/shap_feature_importance.csv
+
+--- Property vs Location ---
+Property features: 54.43 Lakhs  ( 69.3 % )
+Location features: 24.15 Lakhs  ( 30.7 % )
+
+Saved chart to reports/shap_feature_importance.png
+Saved chart to reports/shap_summary.png
+
+=== 8. Tests ===
+........................................................................ [ 72%]
+...........................                                              [100%]
+=============================== warnings summary ===============================
+tests/test_auth.py: 13 warnings
+  /Users/manasabomma/Real-Estate-AVM/backend/services/auth.py:87: UserWarning: AUTH_SECRET is not set: using a development secret. Set it on the server.
+    warnings.warn("AUTH_SECRET is not set: using a development secret. Set it on the server.")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+99 passed, 13 warnings in 2.35s
+
+=== DONE: now commit and push ===
